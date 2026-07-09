@@ -1,8 +1,12 @@
 /* Service worker for FX Discipline — enables offline app-shell caching.
    This is a real file (not a Blob URL), which is required for
    registration to work reliably across browsers. */
-const CACHE_NAME = "fx-discipline-v1";
-const PRECACHE_URLS = ["./", "./index.html", "./manifest.json", "./icons/icon-192.png", "./icons/icon-512.png"];
+const CACHE_NAME = "fx-discipline-v2";
+const PRECACHE_URLS = [
+  "/", "/index.html", "/manifest.json",
+  "/icons/icon-192.png", "/icons/icon-512.png",
+  "/icons/icon-192-maskable.png", "/icons/icon-512-maskable.png",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
