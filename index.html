@@ -3,1128 +3,1302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>ژورنال معاملاتی فارکس | TradeJournal Pro</title>
+    <title>TradeMaster Pro | ژورنال روانشناسی معاملاتی فارکس</title>
     
     <!-- PWA Meta Tags -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#1a1a2e">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0e27">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="TradeJournal">
     
-    <!-- IndexedDB for offline storage -->
-    <script src="https://cdn.jsdelivr.net/npm/idb@7/build/umd.js"></script>
-    
-    <!-- Chart.js for analytics -->
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/idb@8/build/umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     
     <style>
         :root {
-            --primary: #0f3460;
-            --secondary: #16213e;
-            --accent: #e94560;
-            --success: #00b894;
-            --danger: #d63031;
-            --warning: #fdcb6e;
-            --dark: #1a1a2e;
-            --light: #dfe6e9;
-            --text: #2d3436;
-            --glass: rgba(255, 255, 255, 0.1);
+            --bg-primary: #0a0e27;
+            --bg-secondary: #131842;
+            --bg-card: rgba(19, 24, 66, 0.7);
+            --accent: #00d4aa;
+            --accent-red: #ff4757;
+            --accent-gold: #ffa502;
+            --accent-blue: #3742fa;
+            --accent-purple: #a55eea;
+            --accent-pink: #ff6b81;
+            --text-primary: #ffffff;
+            --text-secondary: #a4b0be;
+            --border: rgba(255, 255, 255, 0.1);
+            --glass: rgba(255, 255, 255, 0.05);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Vazirmatn', 'Tahoma', sans-serif;
+            font-family: 'Segoe UI', 'Vazirmatn', Tahoma, sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, var(--dark) 0%, var(--secondary) 100%);
-            color: var(--light);
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
+            line-height: 1.6;
         }
 
-        /* Navigation */
-        .tab-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(26, 26, 46, 0.95);
-            backdrop-filter: blur(10px);
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 5px;
+        /* Header */
+        .app-header {
+            background: var(--bg-secondary);
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
             z-index: 1000;
-            border-top: 1px solid var(--glass);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .tab-btn {
+        .app-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00d4aa, #00a8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-secondary);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 10px 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .nav-item {
             background: none;
             border: none;
-            color: var(--light);
-            padding: 8px 12px;
+            color: var(--text-secondary);
+            padding: 10px 15px;
             border-radius: 12px;
-            font-size: 0.8rem;
             cursor: pointer;
             transition: all 0.3s;
+            font-size: 0.8rem;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
-            opacity: 0.7;
+            gap: 5px;
+            white-space: nowrap;
         }
 
-        .tab-btn.active {
+        .nav-item.active {
             background: var(--accent);
-            opacity: 1;
+            color: var(--bg-primary);
+            font-weight: bold;
             transform: translateY(-5px);
-        }
-
-        .tab-btn i {
-            font-size: 1.5rem;
         }
 
         /* Main Container */
         .main-container {
-            padding: 20px 15px 100px;
-            max-width: 800px;
+            padding: 20px 15px 120px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
         /* Cards */
         .card {
-            background: var(--glass);
+            background: var(--bg-card);
             backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 20px;
+            border-radius: 20px;
+            padding: 25px;
             margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: transform 0.3s;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
         }
 
-        .card:hover {
-            transform: translateY(-2px);
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--accent);
         }
 
         .card-title {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             font-weight: bold;
-            margin-bottom: 15px;
-            color: var(--accent);
-            border-bottom: 2px solid var(--accent);
-            padding-bottom: 8px;
-        }
-
-        /* Form Elements */
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--glass);
-            border-radius: 8px;
-            color: var(--light);
-            font-size: 0.95rem;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--accent);
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        button {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-
-        button:hover {
-            background: #ff6b6b;
-            transform: scale(1.05);
-        }
-
-        /* Checklist Styles */
-        .checklist-item {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            margin: 8px 0;
-            cursor: move;
         }
 
-        .checklist-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .delete-btn {
-            background: var(--danger);
-            padding: 5px 10px;
-            border-radius: 50%;
-            cursor: pointer;
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4aa, #00a8ff);
+            color: var(--bg-primary);
         }
 
-        /* Grid Layouts */
-        .grid-2 {
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+            color: white;
+        }
+
+        .btn-ghost {
+            background: var(--glass);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Grid */
+        .grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 20px;
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(2, 1fr);
         }
 
         .grid-3 {
-            display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
         }
 
-        /* Stats Cards */
-        .stat-card {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--success);
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-top: 5px;
-        }
-
-        /* Media Upload */
-        .media-upload {
-            border: 2px dashed var(--glass);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .media-upload:hover {
-            border-color: var(--accent);
-            background: rgba(233, 69, 96, 0.1);
-        }
-
-        .media-preview {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .media-preview img, .media-preview video {
-            width: 100%;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        /* Charts Container */
-        .chart-container {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-
-        /* Settings Panel */
-        .settings-group {
-            margin: 20px 0;
-        }
-
-        .color-picker {
+        /* Emotion Selector */
+        .emotion-scale {
             display: flex;
-            gap: 10px;
+            gap: 8px;
+            margin: 10px 0;
             flex-wrap: wrap;
         }
 
-        .color-option {
+        .emotion-btn {
             width: 40px;
             height: 40px;
-            border-radius: 50%;
+            border-radius: 10px;
+            border: 2px solid var(--border);
+            background: var(--glass);
+            color: var(--text-primary);
             cursor: pointer;
-            border: 2px solid transparent;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .emotion-btn.selected {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg-primary);
+            transform: scale(1.1);
+        }
+
+        .emotion-btn.low { background: rgba(0, 212, 170, 0.3); }
+        .emotion-btn.medium { background: rgba(255, 165, 2, 0.3); }
+        .emotion-btn.high { background: rgba(255, 71, 87, 0.3); }
+
+        /* Psychology Checklist */
+        .psych-check-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            margin: 8px 0;
+            background: var(--glass);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            cursor: pointer;
             transition: all 0.3s;
         }
 
-        .color-option.active {
-            border-color: white;
-            transform: scale(1.2);
+        .psych-check-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent);
         }
 
-        /* Responsive */
-        @media (max-width: 600px) {
-            .grid-2, .grid-3 {
-                grid-template-columns: 1fr;
-            }
+        .psych-check-item.selected {
+            background: rgba(0, 212, 170, 0.15);
+            border-color: var(--accent);
         }
 
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .psych-check-item .checkbox-indicator {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
         }
 
-        .fade-in {
-            animation: fadeIn 0.5s ease;
+        .psych-check-item.selected .checkbox-indicator {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg-primary);
         }
+
+        /* Slider for intensity */
+        .intensity-slider {
+            width: 100%;
+            margin: 10px 0;
+            -webkit-appearance: none;
+            height: 8px;
+            background: var(--glass);
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .intensity-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: 2px solid white;
+        }
+
+        /* Tags */
+        .tag {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin: 3px;
+        }
+
+        .tag-success { background: rgba(0, 212, 170, 0.2); color: var(--accent); }
+        .tag-danger { background: rgba(255, 71, 87, 0.2); color: var(--accent-red); }
+        .tag-warning { background: rgba(255, 165, 2, 0.2); color: var(--accent-gold); }
+        .tag-info { background: rgba(55, 66, 250, 0.2); color: var(--accent-blue); }
+        .tag-purple { background: rgba(165, 94, 234, 0.2); color: var(--accent-purple); }
+
+        /* Psychology Profile Card */
+        .psych-profile {
+            background: linear-gradient(135deg, rgba(165, 94, 234, 0.1), rgba(0, 212, 170, 0.1));
+            border: 1px solid var(--accent-purple);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        /* Warning/Alert Cards */
+        .alert-card {
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border-right: 4px solid;
+        }
+
+        .alert-danger {
+            background: rgba(255, 71, 87, 0.1);
+            border-color: var(--accent-red);
+        }
+
+        .alert-warning {
+            background: rgba(255, 165, 2, 0.1);
+            border-color: var(--accent-gold);
+        }
+
+        .alert-success {
+            background: rgba(0, 212, 170, 0.1);
+            border-color: var(--accent);
+        }
+
+        /* Trade Card */
+        .trade-card {
+            background: var(--glass);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .trade-card.win { border-right: 4px solid var(--accent); }
+        .trade-card.loss { border-right: 4px solid var(--accent-red); }
 
         /* Modal */
-        .modal {
-            display: none;
+        .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
             background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
             z-index: 2000;
+            display: flex;
             align-items: center;
             justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
         }
 
-        .modal.active {
-            display: flex;
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
         }
 
         .modal-content {
-            background: var(--secondary);
-            border-radius: 16px;
+            background: var(--bg-secondary);
+            border-radius: 20px;
             padding: 30px;
             max-width: 90%;
+            width: 700px;
             max-height: 90vh;
             overflow-y: auto;
+            box-shadow: var(--shadow);
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            height: 8px;
+            background: var(--glass);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-blue));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-up {
+            animation: slideUp 0.5s ease;
         }
     </style>
 </head>
 <body>
 
-    <!-- Loading Screen -->
-    <div id="loading" style="position:fixed;top:0;left:0;right:0;bottom:0;background:var(--dark);display:flex;align-items:center;justify-content:center;z-index:9999;">
-        <div style="text-align:center;">
-            <h2>📊 TradeJournal Pro</h2>
-            <p>در حال بارگذاری...</p>
-            <div style="width:50px;height:50px;border:5px solid var(--glass);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:20px auto;"></div>
-        </div>
+    <!-- Splash Screen -->
+    <div id="splash-screen" style="position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg-primary);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;">
+        <div style="font-size:3rem;margin-bottom:20px;">🧠</div>
+        <h1 style="background: linear-gradient(135deg, #a55eea, #00d4aa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 2rem; margin-bottom: 10px;">TradePsychology Pro</h1>
+        <p style="color: var(--text-secondary);">سیستم تحلیل روانشناسی معاملاتی</p>
+        <div style="width: 50px; height: 50px; border: 3px solid var(--glass); border-top-color: var(--accent-purple); border-radius: 50%; animation: spin 1s linear infinite; margin-top: 20px;"></div>
     </div>
 
-    <!-- Main App -->
-    <div id="app" style="display:none;">
-        <div class="main-container" id="content-area">
-            <!-- Content rendered dynamically -->
+    <!-- Header -->
+    <header class="app-header" id="app-header" style="display:none;">
+        <div class="app-logo">🧠 TradePsychology Pro</div>
+        <div style="display:flex;gap:10px;">
+            <span class="tag tag-success" id="streak-indicator">--</span>
         </div>
+    </header>
 
-        <!-- Tab Navigation -->
-        <nav class="tab-nav">
-            <button class="tab-btn active" onclick="switchTab('checklist')">
-                <span>✅</span> چک‌لیست
-            </button>
-            <button class="tab-btn" onclick="switchTab('journal')">
-                <span>📊</span> ژورنال
-            </button>
-            <button class="tab-btn" onclick="switchTab('analytics')">
-                <span>📈</span> آنالیز
-            </button>
-            <button class="tab-btn" onclick="switchTab('education')">
-                <span>📚</span> آموزش
-            </button>
-            <button class="tab-btn" onclick="switchTab('settings')">
-                <span>⚙️</span> تنظیمات
-            </button>
-        </nav>
+    <!-- Main Content -->
+    <div class="main-container" id="main-content" style="display:none;"></div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav" id="bottom-nav" style="display:none;">
+        <button class="nav-item active" data-tab="dashboard">
+            <span>📊</span> داشبورد
+        </button>
+        <button class="nav-item" data-tab="journal">
+            <span>📝</span> ژورنال
+        </button>
+        <button class="nav-item" data-tab="psychology">
+            <span>🧠</span> روانشناسی
+        </button>
+        <button class="nav-item" data-tab="analytics">
+            <span>📈</span> آنالیز
+        </button>
+        <button class="nav-item" data-tab="insights">
+            <span>💡</span> بینش‌ها
+        </button>
+    </nav>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content" id="modal-content"></div>
     </div>
 
     <script>
         // ============================================
-        // MAIN APPLICATION LOGIC
+        // DATABASE MANAGER
         // ============================================
-
-        // Database initialization
-        let db;
-        const DB_NAME = 'ForexJournalDB';
-        const DB_VERSION = 1;
-
-        // Initialize IndexedDB
-        async function initDB() {
-            db = await idb.openDB(DB_NAME, DB_VERSION, {
-                upgrade(db) {
-                    // Trades store
-                    const tradeStore = db.createObjectStore('trades', { keyPath: 'id', autoIncrement: true });
-                    tradeStore.createIndex('date', 'date');
-                    tradeStore.createIndex('result', 'result');
-                    
-                    // Checklist store
-                    const checklistStore = db.createObjectStore('checklist', { keyPath: 'id', autoIncrement: true });
-                    checklistStore.createIndex('category', 'category');
-                    
-                    // Education store
-                    db.createObjectStore('education', { keyPath: 'id', autoIncrement: true });
-                    
-                    // Settings store
-                    db.createObjectStore('settings', { keyPath: 'key' });
-                    
-                    // Media store
-                    db.createObjectStore('media', { keyPath: 'id', autoIncrement: true });
-                }
-            });
-            
-            // Initialize default settings
-            await initSettings();
-        }
-
-        // Initialize default settings
-        async function initSettings() {
-            const settings = [
-                { key: 'fontSize', value: '14' },
-                { key: 'fontColor', value: '#dfe6e9' },
-                { key: 'bgColor', value: '#1a1a2e' },
-                { key: 'accentColor', value: '#e94560' },
-                { key: 'backupEmail', value: '' },
-                { key: 'backupFrequency', value: 'weekly' },
-                { key: 'theme', value: 'dark' }
-            ];
-            
-            for (const setting of settings) {
-                const exists = await db.get('settings', setting.key);
-                if (!exists) {
-                    await db.put('settings', setting);
-                }
+        class DatabaseManager {
+            constructor() {
+                this.db = null;
             }
-        }
 
-        // Tab switching logic
-        function switchTab(tabName) {
-            // Update active button
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.closest('.tab-btn').classList.add('active');
-            
-            // Render content
-            switch(tabName) {
-                case 'checklist':
-                    renderChecklist();
-                    break;
-                case 'journal':
-                    renderJournal();
-                    break;
-                case 'analytics':
-                    renderAnalytics();
-                    break;
-                case 'education':
-                    renderEducation();
-                    break;
-                case 'settings':
-                    renderSettings();
-                    break;
+            async init() {
+                this.db = await idb.openDB('TradePsychologyPro', 2, {
+                    upgrade(db) {
+                        // Trades Store with extended psychology fields
+                        if (!db.objectStoreNames.contains('trades')) {
+                            const store = db.createObjectStore('trades', { keyPath: 'id', autoIncrement: true });
+                            store.createIndex('date', 'date');
+                            store.createIndex('symbol', 'symbol');
+                            store.createIndex('result', 'result');
+                        }
+
+                        // Psychology Profiles Store
+                        if (!db.objectStoreNames.contains('psychProfiles')) {
+                            db.createObjectStore('psychProfiles', { keyPath: 'id', autoIncrement: true });
+                        }
+
+                        // Settings
+                        if (!db.objectStoreNames.contains('settings')) {
+                            db.createObjectStore('settings', { keyPath: 'key' });
+                        }
+                    }
+                });
             }
         }
 
         // ============================================
-        // CHECKLIST MODULE
+        // PSYCHOLOGY ENGINE
         // ============================================
+        class PsychologyEngine {
+            constructor(trades) {
+                this.trades = trades;
+            }
 
-        async function renderChecklist() {
-            const content = document.getElementById('content-area');
-            
-            // Get checklist items from DB
-            const items = await db.getAll('checklist');
-            const categories = {
-                preTrade: items.filter(i => i.category === 'preTrade'),
-                duringTrade: items.filter(i => i.category === 'duringTrade'),
-                postTrade: items.filter(i => i.category === 'postTrade')
+            // Comprehensive list of trading emotions and behaviors
+            static EMOTION_CATEGORIES = {
+                fear: {
+                    label: '😨 ترس‌ها',
+                    items: [
+                        { id: 'fear_entry', label: 'ترس از ورود به معامله', description: 'تردید در باز کردن معامله با وجود سیگنال معتبر' },
+                        { id: 'fear_loss', label: 'ترس از ضرر کردن', description: 'نگرانی بیش از حد از باخت در معامله' },
+                        { id: 'fear_missing', label: 'فومو (FOMO)', description: 'ترس از دست دادن فرصت معاملاتی' },
+                        { id: 'fear_profit_loss', label: 'ترس از دست دادن سود', description: 'بستن زودهنگام معامله سودده از ترس برگشت قیمت' },
+                        { id: 'fear_reentry', label: 'ترس از ورود مجدد', description: 'عدم ورود مجدد پس از یک ضرر یا سود' },
+                        { id: 'fear_holding', label: 'ترس از نگه داشتن معامله', description: 'عدم توانایی در حفظ معامله باز' }
+                    ]
+                },
+                greed: {
+                    label: '💰 طمع',
+                    items: [
+                        { id: 'greed_overtrade', label: 'طمع برای معاملات بیشتر', description: 'ورود به معاملات اضافی برای سود بیشتر' },
+                        { id: 'greed_size', label: 'طمع در حجم معامله', description: 'افزایش حجم معامله بیش از حد مجاز' },
+                        { id: 'greed_target', label: 'طمع در هدف سود', description: 'جابجایی TP برای سود بیشتر' },
+                        { id: 'greed_hold', label: 'طمع در نگهداری', description: 'نگه داشتن معامله سودده برای سود بیشتر' }
+                    ]
+                },
+                impulsivity: {
+                    label: '⚡ عجله و تکانشگری',
+                    items: [
+                        { id: 'rush_entry', label: 'عجله در ورود', description: 'ورود به معامله قبل از تکمیل سیگنال' },
+                        { id: 'rush_exit', label: 'عجله در خروج', description: 'خروج سریع بدون دلیل منطقی' },
+                        { id: 'rush_decision', label: 'تصمیم‌گیری عجولانه', description: 'تصمیم‌گیری بدون تحلیل کافی' },
+                        { id: 'impatient_wait', label: 'بی‌صبری در انتظار', description: 'عدم توانایی در صبر برای ستاپ مناسب' }
+                    ]
+                },
+                revenge: {
+                    label: '😤 انتقام و خشم',
+                    items: [
+                        { id: 'revenge_trade', label: 'ترید انتقامی', description: 'ورود به معامله بلافاصله بعد از ضرر برای جبران' },
+                        { id: 'revenge_size', label: 'افزایش حجم برای جبران', description: 'بزرگ کردن حجم معامله بعد از ضرر' },
+                        { id: 'anger_market', label: 'خشم از بازار', description: 'احساس خشم و ناامیدی نسبت به حرکت قیمت' },
+                        { id: 'blame_external', label: 'مقصر دانستن عوامل خارجی', description: 'عدم پذیرش مسئولیت ضرر' }
+                    ]
+                },
+                overconfidence: {
+                    label: '🎭 اعتماد به نفس کاذب',
+                    items: [
+                        { id: 'overconf_after_win', label: 'غرور بعد از برد', description: 'اعتماد به نفس بیش از حد پس از چند معامله موفق' },
+                        { id: 'overconf_risk', label: 'نادیده گرفتن ریسک', description: 'کم اهمیت شمردن مدیریت ریسک' },
+                        { id: 'overconf_rules', label: 'شکستن قوانین', description: 'نادیده گرفتن استراتژی از روی اعتماد به نفس' },
+                        { id: 'overconf_analysis', label: 'تحلیل سطحی', description: 'تحلیل ناقص به دلیل اطمینان بیش از حد' }
+                    ]
+                },
+                discipline: {
+                    label: '📋 انضباط معاملاتی',
+                    items: [
+                        { id: 'followed_plan', label: 'طبق پلن معامله کردم', description: 'معامله کاملاً مطابق با استراتژی', positive: true },
+                        { id: 'deviated_plan', label: 'خارج از پلن معامله کردم', description: 'انحراف از استراتژی معاملاتی', positive: false },
+                        { id: 'skipped_checklist', label: 'چک‌لیست را نادیده گرفتم', description: 'عدم استفاده از چک‌لیست', positive: false },
+                        { id: 'followed_checklist', label: 'چک‌لیست را کامل انجام دادم', description: 'رعایت کامل چک‌لیست', positive: true },
+                        { id: 'moved_sl', label: 'حد ضرر را جابجا کردم', description: 'تغییر SL از مقدار تعیین شده' },
+                        { id: 'moved_tp', label: 'حد سود را جابجا کردم', description: 'تغییر TP از مقدار تعیین شده' },
+                        { id: 'closed_early', label: 'معامله را زودتر بستم', description: 'خروج قبل از رسیدن به TP یا SL' }
+                    ]
+                },
+                mental_state: {
+                    label: '🧘 وضعیت ذهنی',
+                    items: [
+                        { id: 'focused', label: 'تمرکز کامل داشتم', description: 'حضور ذهن و تمرکز بالا', positive: true },
+                        { id: 'distracted', label: 'حواس‌پرتی داشتم', description: 'عدم تمرکز کافی حین معامله' },
+                        { id: 'tired', label: 'خسته بودم', description: 'معامله در حالت خستگی' },
+                        { id: 'stressed', label: 'استرس داشتم', description: 'معامله تحت فشار روحی' },
+                        { id: 'emotional', label: 'احساسی بودم', description: 'تصمیم‌گیری بر اساس احساسات' },
+                        { id: 'calm', label: 'آرامش داشتم', description: 'معامله در آرامش ذهنی', positive: true },
+                        { id: 'anxious', label: 'اضطراب داشتم', description: 'نگرانی و دلهره حین معامله' }
+                    ]
+                },
+                external_factors: {
+                    label: '🌍 عوامل خارجی',
+                    items: [
+                        { id: 'affected_prev_loss', label: 'تحت تأثیر ضرر قبلی', description: 'معامله قبلی روی این تصمیم اثر گذاشت' },
+                        { id: 'affected_prev_win', label: 'تحت تأثیر سود قبلی', description: 'سود معامله قبل باعث تغییر رفتار شد' },
+                        { id: 'personal_stress', label: 'مشکلات شخصی', description: 'مسائل زندگی شخصی روی معامله اثر گذاشت' },
+                        { id: 'market_noise', label: 'تحت تأثیر نویز بازار', description: 'شایعات و اخبار تأیید نشده' },
+                        { id: 'social_pressure', label: 'تحت فشار اجتماعی', description: 'تأثیر نظرات دیگران در تصمیم‌گیری' }
+                    ]
+                }
             };
-            
-            content.innerHTML = `
-                <div class="card fade-in">
-                    <div class="card-title">✅ چک‌لیست معاملاتی</div>
-                    <p style="opacity:0.8;margin-bottom:15px;">مراحل استراتژی خود را مدیریت کنید</p>
-                    
-                    <!-- Add New Item -->
-                    <div style="display:flex;gap:10px;margin-bottom:20px;">
-                        <input type="text" id="new-item-text" placeholder="مرحله جدید..." style="flex:1;">
-                        <select id="new-item-category" style="width:auto;">
-                            <option value="preTrade">قبل از معامله</option>
-                            <option value="duringTrade">حین معامله</option>
-                            <option value="postTrade">بعد از معامله</option>
-                        </select>
-                        <button onclick="addChecklistItem()">+ افزودن</button>
-                    </div>
-                    
-                    <!-- Pre-Trade Checklist -->
-                    <div style="margin:20px 0;">
-                        <h3 style="color:var(--warning);">📋 قبل از معامله</h3>
-                        <div id="pre-trade-list">
-                            ${renderChecklistItems(categories.preTrade)}
-                        </div>
-                    </div>
-                    
-                    <!-- During Trade -->
-                    <div style="margin:20px 0;">
-                        <h3 style="color:var(--accent);">🔄 حین معامله</h3>
-                        <div id="during-trade-list">
-                            ${renderChecklistItems(categories.duringTrade)}
-                        </div>
-                    </div>
-                    
-                    <!-- Post Trade -->
-                    <div style="margin:20px 0;">
-                        <h3 style="color:var(--success);">✓ بعد از معامله</h3>
-                        <div id="post-trade-list">
-                            ${renderChecklistItems(categories.postTrade)}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
 
-        function renderChecklistItems(items) {
-            return items.map(item => `
-                <div class="checklist-item" draggable="true" data-id="${item.id}">
-                    <span style="cursor:grab;">☰</span>
-                    <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleChecklistItem(${item.id})">
-                    <span style="flex:1;${item.completed ? 'text-decoration:line-through;opacity:0.6;' : ''}">${item.text}</span>
-                    <button class="delete-btn" onclick="deleteChecklistItem(${item.id})">🗑️</button>
-                </div>
-            `).join('');
-        }
-
-        async function addChecklistItem() {
-            const text = document.getElementById('new-item-text').value;
-            const category = document.getElementById('new-item-category').value;
-            
-            if (!text) return;
-            
-            await db.add('checklist', {
-                text,
-                category,
-                completed: false,
-                order: Date.now()
-            });
-            
-            document.getElementById('new-item-text').value = '';
-            renderChecklist();
-        }
-
-        async function toggleChecklistItem(id) {
-            const item = await db.get('checklist', id);
-            item.completed = !item.completed;
-            await db.put('checklist', item);
-            renderChecklist();
-        }
-
-        async function deleteChecklistItem(id) {
-            if (confirm('آیا از حذف این آیتم مطمئن هستید؟')) {
-                await db.delete('checklist', id);
-                renderChecklist();
-            }
-        }
-
-        // ============================================
-        // JOURNAL MODULE
-        // ============================================
-
-        async function renderJournal() {
-            const content = document.getElementById('content-area');
-            const trades = await db.getAll('trades');
-            
-            content.innerHTML = `
-                <div class="card fade-in">
-                    <div class="card-title">📊 ژورنال معاملات</div>
-                    
-                    <!-- New Trade Button -->
-                    <button onclick="showNewTradeForm()" style="margin-bottom:20px;">+ ثبت معامله جدید</button>
-                    
-                    <!-- Trades List -->
-                    <div id="trades-list">
-                        ${trades.length === 0 ? '<p>هنوز معامله‌ای ثبت نشده است</p>' : trades.slice(-10).reverse().map(renderTradeCard).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderTradeCard(trade) {
-            const resultColor = trade.result > 0 ? 'var(--success)' : trade.result < 0 ? 'var(--danger)' : 'var(--warning)';
-            const resultText = trade.result > 0 ? `+${trade.result}$` : trade.result < 0 ? `${trade.result}$` : 'BE';
-            
-            return `
-                <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:15px;margin:10px 0;border-right:4px solid ${resultColor};">
-                    <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <div>
-                            <strong>${trade.symbol}</strong>
-                            <span style="color:${resultColor};margin-right:10px;">${resultText}</span>
-                        </div>
-                        <div style="font-size:0.9rem;opacity:0.7;">${trade.date}</div>
-                    </div>
-                    <div style="margin-top:10px;font-size:0.85rem;">
-                        <span>Setup: ${trade.setupQuality || 'N/A'}</span> |
-                        <span>Emotion: ${trade.emotionBefore || 'N/A'}/10</span> |
-                        <span>${trade.checklistCompleted ? '✅ چک‌لیست کامل' : '⚠️ بدون چک‌لیست'}</span>
-                    </div>
-                    <button onclick="viewTradeDetail(${trade.id})" style="margin-top:10px;padding:5px 15px;font-size:0.8rem;">مشاهده جزئیات</button>
-                </div>
-            `;
-        }
-
-        function showNewTradeForm() {
-            const modal = document.createElement('div');
-            modal.className = 'modal active';
-            modal.innerHTML = `
-                <div class="modal-content" style="max-width:600px;width:100%;">
-                    <h2 style="margin-bottom:20px;">ثبت معامله جدید</h2>
-                    
-                    <div class="grid-2">
-                        <div>
-                            <label>تاریخ</label>
-                            <input type="date" id="trade-date" value="${new Date().toISOString().split('T')[0]}">
-                        </div>
-                        <div>
-                            <label>روز هفته</label>
-                            <input type="text" id="trade-day" value="${getDayName(new Date().getDay())}" readonly>
-                        </div>
-                    </div>
-                    
-                    <div class="grid-2">
-                        <div>
-                            <label>ساعت ورود</label>
-                            <input type="time" id="entry-time">
-                        </div>
-                        <div>
-                            <label>ساعت خروج</label>
-                            <input type="time" id="exit-time">
-                        </div>
-                    </div>
-                    
-                    <div class="grid-2">
-                        <div>
-                            <label>نماد</label>
-                            <input type="text" id="symbol" placeholder="EURUSD">
-                        </div>
-                        <div>
-                            <label>نتیجه ($)</label>
-                            <input type="number" id="result" step="0.01" placeholder="+100 یا -50">
-                        </div>
-                    </div>
-                    
-                    <label>چک‌لیست کامل شد؟</label>
-                    <select id="checklist-completed">
-                        <option value="1">بله ✅</option>
-                        <option value="0">خیر ❌</option>
-                    </select>
-                    
-                    <label>کیفیت ستاپ</label>
-                    <select id="setup-quality">
-                        <option value="A">A - عالی</option>
-                        <option value="B">B - خوب</option>
-                        <option value="C">C - متوسط</option>
-                        <option value="D">D - ضعیف</option>
-                    </select>
-                    
-                    <label>احساس قبل از معامله (۱-۱۰)</label>
-                    <input type="range" id="emotion-before" min="1" max="10" value="5" oninput="document.getElementById('emotion-value').textContent=this.value">
-                    <span id="emotion-value">5</span>/10
-                    
-                    <label>احساس بعد از معامله</label>
-                    <input type="range" id="emotion-after" min="1" max="10" value="5">
-                    
-                    <label>دلیل خروج</label>
-                    <select id="exit-reason">
-                        <option value="TP">رسیدن به TP</option>
-                        <option value="SL">رسیدن به SL</option>
-                        <option value="manual_early">خروج دستی زودهنگام</option>
-                        <option value="manual_late">خروج دستی دیرهنگام</option>
-                    </select>
-                    
-                    <div style="margin:15px 0;">
-                        <label>عکس/ویدیو</label>
-                        <div class="media-upload" onclick="document.getElementById('media-input').click()">
-                            <p>📁 کلیک کنید یا فایل را بکشید</p>
-                            <input type="file" id="media-input" multiple accept="image/*,video/*" style="display:none;">
-                        </div>
-                        <div id="media-preview" class="media-preview"></div>
-                    </div>
-                    
-                    <label>یادداشت</label>
-                    <textarea id="notes" rows="3" placeholder="توضیحات معامله..."></textarea>
-                    
-                    <div style="display:flex;gap:10px;margin-top:20px;">
-                        <button onclick="saveTrade()" style="flex:1;">💾 ذخیره معامله</button>
-                        <button onclick="closeModal()" style="flex:1;background:var(--secondary);">انصراف</button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-            
-            // Handle media upload
-            document.getElementById('media-input').addEventListener('change', handleMediaUpload);
-        }
-
-        function handleMediaUpload(event) {
-            const files = event.target.files;
-            const preview = document.getElementById('media-preview');
-            
-            for (const file of files) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const element = file.type.startsWith('image/') ? 
-                        `<img src="${e.target.result}" alt="preview">` :
-                        `<video src="${e.target.result}" controls></video>`;
-                    preview.innerHTML += element;
+            analyzePsychology(trade) {
+                const analysis = {
+                    emotionalState: this.assessEmotionalState(trade),
+                    riskBehaviors: this.identifyRiskBehaviors(trade),
+                    disciplineScore: this.calculateDisciplineScore(trade),
+                    cognitiveBiases: this.identifyCognitiveBiases(trade),
+                    recommendations: []
                 };
-                reader.readAsDataURL(file);
+
+                // Generate recommendations based on analysis
+                if (trade.emotions?.includes('fear_profit_loss') && trade.profit > 0) {
+                    analysis.recommendations.push({
+                        type: 'fear',
+                        message: 'ترس از دست دادن سود باعث شده معاملات سودده را زودتر ببندید. اعتماد به تحلیل خود را تمرین کنید.',
+                        severity: 'medium'
+                    });
+                }
+
+                if (trade.emotions?.includes('revenge_trade')) {
+                    analysis.recommendations.push({
+                        type: 'danger',
+                        message: 'ترید انتقامی شناسایی شد! بعد از هر ضرر حداقل ۳۰ دقیقه از چارت فاصله بگیرید.',
+                        severity: 'high'
+                    });
+                }
+
+                if (trade.emotions?.includes('rushed_entry')) {
+                    analysis.recommendations.push({
+                        type: 'warning',
+                        message: 'عجله در ورود باعث معاملات غیرضروری می‌شود. صبر کنید تا تمام شرایط استراتژی محقق شود.',
+                        severity: 'medium'
+                    });
+                }
+
+                if (trade.deviatedFromPlan) {
+                    analysis.recommendations.push({
+                        type: 'danger',
+                        message: 'خروج از پلن معاملاتی! به استراتژی خود پایبند باشید حتی اگر وسوسه‌انگیز باشد.',
+                        severity: 'high'
+                    });
+                }
+
+                return analysis;
+            }
+
+            assessEmotionalState(trade) {
+                const emotionalLoad = (trade.emotions?.length || 0);
+                const negativeEmotions = trade.emotions?.filter(e => 
+                    !e.includes('calm') && !e.includes('focused') && !e.includes('followed_plan')
+                ).length || 0;
+
+                let state = 'neutral';
+                let score = 5;
+
+                if (negativeEmotions > 3) {
+                    state = 'highly_emotional';
+                    score = 2;
+                } else if (negativeEmotions > 1) {
+                    state = 'emotional';
+                    score = 4;
+                } else if (emotionalLoad === 0) {
+                    state = 'calm';
+                    score = 8;
+                }
+
+                return { state, score, negativeEmotions, totalEmotions: emotionalLoad };
+            }
+
+            identifyRiskBehaviors(trade) {
+                const behaviors = [];
+
+                if (trade.emotions?.includes('greed_size') && trade.positionSize > trade.normalPositionSize) {
+                    behaviors.push({ type: 'oversizing', severity: 'high', 
+                        detail: `حجم معامله ${trade.positionSize} لات (بیشتر از حد نرمال)` });
+                }
+
+                if (trade.emotions?.includes('moved_sl')) {
+                    behaviors.push({ type: 'sl_manipulation', severity: 'high',
+                        detail: 'حد ضرر جابجا شده است' });
+                }
+
+                if (trade.emotions?.includes('skipped_checklist')) {
+                    behaviors.push({ type: 'skipped_protocol', severity: 'medium',
+                        detail: 'چک‌لیست انجام نشده' });
+                }
+
+                return behaviors;
+            }
+
+            calculateDisciplineScore(trade) {
+                let score = 100;
+                
+                if (trade.deviatedFromPlan) score -= 30;
+                if (trade.emotions?.includes('skipped_checklist')) score -= 20;
+                if (trade.emotions?.includes('moved_sl')) score -= 15;
+                if (trade.emotions?.includes('moved_tp')) score -= 10;
+                if (trade.emotions?.includes('closed_early') && trade.profit > 0) score -= 15;
+                if (trade.emotions?.includes('followed_plan')) score += 10;
+                if (trade.emotions?.includes('followed_checklist')) score += 10;
+
+                return Math.max(0, Math.min(100, score));
+            }
+
+            identifyCognitiveBiases(trade) {
+                const biases = [];
+
+                if (trade.emotions?.includes('overconf_after_win')) {
+                    biases.push('Overconfidence Bias');
+                }
+                if (trade.emotions?.includes('fear_missing')) {
+                    biases.push('FOMO Bias');
+                }
+                if (trade.emotions?.includes('revenge_trade')) {
+                    biases.push('Revenge Trading Bias');
+                }
+                if (trade.emotions?.includes('blame_external')) {
+                    biases.push('External Attribution Bias');
+                }
+
+                return biases;
+            }
+
+            getOverallPsychologyScore(trades) {
+                if (trades.length === 0) return 0;
+                
+                let totalScore = 0;
+                trades.forEach(trade => {
+                    const analysis = this.analyzePsychology(trade);
+                    totalScore += analysis.emotionalState.score;
+                });
+
+                return (totalScore / trades.length).toFixed(1);
+            }
+
+            getEmotionFrequency(trades) {
+                const frequency = {};
+                trades.forEach(trade => {
+                    if (trade.emotions) {
+                        trade.emotions.forEach(emotion => {
+                            frequency[emotion] = (frequency[emotion] || 0) + 1;
+                        });
+                    }
+                });
+                return frequency;
             }
         }
 
-        async function saveTrade() {
-            const trade = {
-                date: document.getElementById('trade-date').value,
-                day: document.getElementById('trade-day').value,
-                entryTime: document.getElementById('entry-time').value,
-                exitTime: document.getElementById('exit-time').value,
-                symbol: document.getElementById('symbol').value,
-                result: parseFloat(document.getElementById('result').value) || 0,
-                checklistCompleted: document.getElementById('checklist-completed').value === '1',
-                setupQuality: document.getElementById('setup-quality').value,
-                emotionBefore: parseInt(document.getElementById('emotion-before').value),
-                emotionAfter: parseInt(document.getElementById('emotion-after').value),
-                exitReason: document.getElementById('exit-reason').value,
-                notes: document.getElementById('notes').value,
-                timestamp: new Date().toISOString()
-            };
-            
-            await db.add('trades', trade);
-            closeModal();
-            renderJournal();
-        }
-
         // ============================================
-        // ANALYTICS MODULE
+        // MAIN APPLICATION
         // ============================================
-
-        async function renderAnalytics() {
-            const content = document.getElementById('content-area');
-            const trades = await db.getAll('trades');
-            
-            // Calculate statistics
-            const stats = calculateStats(trades);
-            const revengeTrades = detectRevengeTrades(trades);
-            const overtrading = detectOvertrading(trades);
-            
-            content.innerHTML = `
-                <div class="fade-in">
-                    <h2 style="margin-bottom:20px;">📈 تحلیل و آنالیز معاملات</h2>
-                    
-                    <!-- Statistics Cards -->
-                    <div class="grid-3" style="margin-bottom:20px;">
-                        <div class="stat-card">
-                            <div class="stat-value">${trades.length}</div>
-                            <div class="stat-label">کل معاملات</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value" style="color:${stats.winRate >= 50 ? 'var(--success)' : 'var(--danger)'}">${stats.winRate}%</div>
-                            <div class="stat-label">نرخ برد</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value" style="color:${stats.totalProfit >= 0 ? 'var(--success)' : 'var(--danger)'}">${stats.totalProfit}$</div>
-                            <div class="stat-label">سود/ضرر کل</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Charts -->
-                    <div class="card">
-                        <div class="card-title">عملکرد به تفکیک روز</div>
-                        <div class="chart-container">
-                            <canvas id="dailyChart"></canvas>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-title">عملکرد به تفکیک ساعت</div>
-                        <div class="chart-container">
-                            <canvas id="hourlyChart"></canvas>
-                        </div>
-                    </div>
-                    
-                    <!-- Insights -->
-                    <div class="card">
-                        <div class="card-title">🕵️ تحلیل رفتاری</div>
-                        <div style="margin:15px 0;">
-                            <p><strong>تریدهای انتقامی شناسایی شده:</strong> ${revengeTrades.length}</p>
-                            <p><strong>اورتریدینگ:</strong> ${overtrading.detected ? '⚠️ تشخیص داده شد' : '✅ نرمال'}</p>
-                            <p><strong>میانگین احساسات:</strong> ${stats.avgEmotion}/10</p>
-                            <p><strong>بهترین روز:</strong> ${stats.bestDay || 'N/A'}</p>
-                            <p><strong>بدترین روز:</strong> ${stats.worstDay || 'N/A'}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Render charts
-            setTimeout(() => renderCharts(trades), 100);
-        }
-
-        function calculateStats(trades) {
-            if (trades.length === 0) return {};
-            
-            const winningTrades = trades.filter(t => t.result > 0);
-            const winRate = ((winningTrades.length / trades.length) * 100).toFixed(2);
-            const totalProfit = trades.reduce((sum, t) => sum + t.result, 0).toFixed(2);
-            const avgEmotion = (trades.reduce((sum, t) => sum + (t.emotionBefore || 5), 0) / trades.length).toFixed(1);
-            
-            // Best/Worst day
-            const dayStats = {};
-            trades.forEach(t => {
-                if (!dayStats[t.day]) dayStats[t.day] = { profit: 0, count: 0 };
-                dayStats[t.day].profit += t.result;
-                dayStats[t.day].count++;
-            });
-            
-            let bestDay = '', worstDay = '';
-            let maxProfit = -Infinity, minProfit = Infinity;
-            
-            for (const [day, stats] of Object.entries(dayStats)) {
-                if (stats.profit > maxProfit) { maxProfit = stats.profit; bestDay = day; }
-                if (stats.profit < minProfit) { minProfit = stats.profit; worstDay = day; }
+        class TradePsychologyApp {
+            constructor() {
+                this.db = new DatabaseManager();
+                this.currentTab = 'dashboard';
             }
-            
-            return { winRate, totalProfit, avgEmotion, bestDay, worstDay };
-        }
 
-        function detectRevengeTrades(trades) {
-            const sortedTrades = trades.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-            const revengeTrades = [];
-            
-            for (let i = 1; i < sortedTrades.length; i++) {
-                const currentTrade = sortedTrades[i];
-                const previousTrade = sortedTrades[i-1];
+            async init() {
+                await this.db.init();
+                document.getElementById('splash-screen').style.display = 'none';
+                document.getElementById('app-header').style.display = 'flex';
+                document.getElementById('main-content').style.display = 'block';
+                document.getElementById('bottom-nav').style.display = 'flex';
                 
-                const timeDiff = (new Date(currentTrade.timestamp) - new Date(previousTrade.timestamp)) / (1000 * 60);
-                
-                if (previousTrade.result < 0 && timeDiff < 30) {
-                    revengeTrades.push(currentTrade);
+                this.setupNavigation();
+                this.loadDashboard();
+            }
+
+            setupNavigation() {
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const tab = e.currentTarget.dataset.tab;
+                        this.switchTab(tab);
+                    });
+                });
+            }
+
+            async switchTab(tab) {
+                this.currentTab = tab;
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.toggle('active', item.dataset.tab === tab);
+                });
+
+                switch(tab) {
+                    case 'dashboard': await this.loadDashboard(); break;
+                    case 'journal': await this.loadJournal(); break;
+                    case 'psychology': await this.loadPsychology(); break;
+                    case 'analytics': await this.loadAnalytics(); break;
+                    case 'insights': await this.loadInsights(); break;
                 }
             }
-            
-            return revengeTrades;
-        }
 
-        function detectOvertrading(trades) {
-            const dailyTrades = {};
-            trades.forEach(t => {
-                if (!dailyTrades[t.date]) dailyTrades[t.date] = 0;
-                dailyTrades[t.date]++;
-            });
-            
-            const avgDailyTrades = Object.values(dailyTrades).reduce((sum, count) => sum + count, 0) / Object.keys(dailyTrades).length;
-            const today = new Date().toISOString().split('T')[0];
-            const todayTrades = dailyTrades[today] || 0;
-            
-            return {
-                detected: todayTrades > avgDailyTrades * 1.5,
-                avg: avgDailyTrades,
-                today: todayTrades
-            };
-        }
+            async loadDashboard() {
+                const trades = await this.db.db.getAll('trades');
+                const psychEngine = new PsychologyEngine(trades);
+                const overallScore = psychEngine.getOverallPsychologyScore(trades);
+                const recentTrades = trades.slice(-7);
 
-        function renderCharts(trades) {
-            // Daily performance chart
-            const dayNames = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه'];
-            const dayData = {};
-            
-            trades.forEach(t => {
-                if (!dayData[t.day]) dayData[t.day] = { wins: 0, total: 0 };
-                dayData[t.day].total++;
-                if (t.result > 0) dayData[t.day].wins++;
-            });
-            
-            const dayWinRates = dayNames.map(day => {
-                const data = dayData[day];
-                return data ? ((data.wins / data.total) * 100).toFixed(1) : 0;
-            });
-            
-            new Chart(document.getElementById('dailyChart'), {
-                type: 'bar',
-                data: {
-                    labels: dayNames,
-                    datasets: [{
-                        label: 'Win Rate %',
-                        data: dayWinRates,
-                        backgroundColor: 'rgba(233, 69, 96, 0.5)',
-                        borderColor: '#e94560'
-                    }]
-                }
-            });
-        }
+                const content = document.getElementById('main-content');
+                content.innerHTML = `
+                    <div class="slide-up">
+                        <h2 style="margin-bottom:20px;">🧠 داشبورد روانشناسی معاملاتی</h2>
 
-        // ============================================
-        // EDUCATION MODULE
-        // ============================================
-
-        async function renderEducation() {
-            const content = document.getElementById('content-area');
-            const notes = await db.getAll('education');
-            
-            content.innerHTML = `
-                <div class="fade-in">
-                    <div class="card">
-                        <div class="card-title">📚 نکات آموزشی و یادداشت‌ها</div>
-                        
-                        <div style="display:flex;gap:10px;margin-bottom:20px;">
-                            <input type="text" id="note-title" placeholder="عنوان یادداشت..." style="flex:1;">
-                            <button onclick="addNote()">+ افزودن</button>
-                        </div>
-                        
-                        <textarea id="note-content" rows="4" placeholder="محتوای یادداشت..."></textarea>
-                        
-                        <div style="margin:15px 0;">
-                            <label>دسته‌بندی</label>
-                            <select id="note-category">
-                                <option value="chart">تحلیل چارت</option>
-                                <option value="psychology">روانشناسی</option>
-                                <option value="news">اخبار و رویدادها</option>
-                                <option value="strategy">استراتژی</option>
-                            </select>
-                        </div>
-                        
-                        <div style="margin:15px 0;">
-                            <label>لینک اخبار (فارکس فکتوری/اینوستینگ)</label>
-                            <input type="url" id="news-url" placeholder="https://www.forexfactory.com/...">
-                        </div>
-                        
-                        <div class="media-upload" onclick="document.getElementById('edu-media').click()">
-                            <p>📁 آپلود عکس واکنش چارت</p>
-                            <input type="file" id="edu-media" accept="image/*,video/*" style="display:none;">
-                        </div>
-                        
-                        <div id="notes-list" style="margin-top:20px;">
-                            ${notes.slice(-5).reverse().map(note => `
-                                <div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:8px;margin:10px 0;">
-                                    <h4>${note.title}</h4>
-                                    <small>${note.category} | ${new Date(note.timestamp).toLocaleDateString('fa-IR')}</small>
-                                    <p>${note.content.substring(0, 100)}...</p>
+                        <!-- Psychology Score Card -->
+                        <div class="psych-profile">
+                            <div style="text-align:center;margin-bottom:20px;">
+                                <div style="font-size:3rem;font-weight:bold;background: linear-gradient(135deg, var(--accent-purple), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                                    ${overallScore}/10
                                 </div>
-                            `).join('')}
+                                <p style="color:var(--text-secondary);">امتیاز سلامت روانشناسی معاملاتی</p>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width:${overallScore * 10}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats -->
+                        <div class="grid grid-3" style="margin-bottom:20px;">
+                            <div class="card" style="text-align:center;">
+                                <div style="font-size:2rem;">${trades.length}</div>
+                                <div class="tag tag-info">کل معاملات</div>
+                            </div>
+                            <div class="card" style="text-align:center;">
+                                <div style="font-size:2rem;">${recentTrades.filter(t => t.emotions?.includes('followed_plan')).length}</div>
+                                <div class="tag tag-success">طبق پلن</div>
+                            </div>
+                            <div class="card" style="text-align:center;">
+                                <div style="font-size:2rem;">${recentTrades.filter(t => t.emotions?.includes('deviated_plan')).length}</div>
+                                <div class="tag tag-danger">خارج از پلن</div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Trades Psychology -->
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="card-title">📋 آخرین تحلیل‌های روانشناسی</span>
+                                <button class="btn btn-primary" onclick="app.openNewTradeForm()">+ ثبت معامله جدید</button>
+                            </div>
+                            ${recentTrades.reverse().slice(0, 5).map(trade => this.renderTradePsychCard(trade)).join('')}
+                            ${recentTrades.length === 0 ? '<p style="text-align:center;">هنوز معامله‌ای ثبت نشده</p>' : ''}
                         </div>
                     </div>
-                </div>
-            `;
-        }
+                `;
+            }
 
-        async function addNote() {
-            const note = {
-                title: document.getElementById('note-title').value,
-                content: document.getElementById('note-content').value,
-                category: document.getElementById('note-category').value,
-                url: document.getElementById('news-url').value,
-                timestamp: new Date().toISOString()
-            };
-            
-            await db.add('education', note);
-            renderEducation();
-        }
-
-        // ============================================
-        // SETTINGS MODULE
-        // ============================================
-
-        async function renderSettings() {
-            const content = document.getElementById('content-area');
-            const settings = await db.getAll('settings');
-            const settingsObj = {};
-            settings.forEach(s => settingsObj[s.key] = s.value);
-            
-            content.innerHTML = `
-                <div class="fade-in">
-                    <div class="card">
-                        <div class="card-title">⚙️ تنظیمات</div>
-                        
-                        <div class="settings-group">
-                            <h3>ظاهر</h3>
-                            <label>اندازه فونت: ${settingsObj.fontSize}px</label>
-                            <input type="range" min="12" max="20" value="${settingsObj.fontSize}" onchange="updateSetting('fontSize', this.value)">
-                            
-                            <label>رنگ تم</label>
-                            <div class="color-picker">
-                                ${['#e94560', '#00b894', '#0984e3', '#6c5ce7', '#fdcb6e'].map(color => `
-                                    <div class="color-option" style="background:${color};${settingsObj.accentColor === color ? 'border-color:white;transform:scale(1.2);' : ''}" 
-                                         onclick="updateSetting('accentColor', '${color}')"></div>
-                                `).join('')}
+            renderTradePsychCard(trade) {
+                const psychEngine = new PsychologyEngine([trade]);
+                const analysis = psychEngine.analyzePsychology(trade);
+                const disciplineScore = psychEngine.calculateDisciplineScore(trade);
+                
+                return `
+                    <div class="trade-card ${trade.profit > 0 ? 'win' : 'loss'}">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                            <div>
+                                <strong>${trade.symbol}</strong>
+                                <span style="margin:0 10px;">${trade.date}</span>
+                            </div>
+                            <div>
+                                <span class="tag ${disciplineScore >= 70 ? 'tag-success' : disciplineScore >= 40 ? 'tag-warning' : 'tag-danger'}">
+                                    انضباط: ${disciplineScore}%
+                                </span>
                             </div>
                         </div>
                         
-                        <div class="settings-group">
-                            <h3>پشتیبان‌گیری</h3>
-                            <label>ایمیل برای بکاپ خودکار</label>
-                            <input type="email" value="${settingsObj.backupEmail}" onchange="updateSetting('backupEmail', this.value)" placeholder="example@gmail.com">
-                            
-                            <label>تناوب بکاپ</label>
-                            <select onchange="updateSetting('backupFrequency', this.value)">
-                                <option value="daily" ${settingsObj.backupFrequency === 'daily' ? 'selected' : ''}>روزانه</option>
-                                <option value="weekly" ${settingsObj.backupFrequency === 'weekly' ? 'selected' : ''}>هفتگی</option>
-                                <option value="manual" ${settingsObj.backupFrequency === 'manual' ? 'selected' : ''}>دستی</option>
-                            </select>
-                            
-                            <button onclick="exportData()" style="margin:10px 0;">📥 خروجی PDF/Excel</button>
-                            <button onclick="importData()">📤 بازیابی از فایل</button>
+                        ${trade.emotions?.length > 0 ? `
+                            <div style="margin:10px 0;">
+                                ${trade.emotions.map(e => {
+                                    const emoji = e.includes('fear') ? '😨' : e.includes('greed') ? '💰' : e.includes('rush') ? '⚡' : e.includes('revenge') ? '😤' : e.includes('followed') ? '✅' : e.includes('deviated') ? '❌' : '🔍';
+                                    return `<span class="tag tag-${e.includes('followed') || e.includes('calm') ? 'success' : e.includes('deviated') || e.includes('revenge') ? 'danger' : 'warning'}" style="margin:2px;">${emoji} ${e}</span>`;
+                                }).join('')}
+                            </div>
+                        ` : ''}
+
+                        ${analysis.recommendations.length > 0 ? `
+                            <div style="margin-top:10px;">
+                                ${analysis.recommendations.map(rec => `
+                                    <div class="alert-card alert-${rec.severity === 'high' ? 'danger' : 'warning'}">
+                                        <small>${rec.message}</small>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            openNewTradeForm() {
+                const modal = document.getElementById('modal-overlay');
+                const content = document.getElementById('modal-content');
+                
+                content.innerHTML = `
+                    <h3 style="margin-bottom:20px;">📝 ثبت معامله با تحلیل روانشناسی</h3>
+                    
+                    <!-- Basic Trade Info -->
+                    <div class="grid grid-3" style="margin-bottom:20px;">
+                        <div class="form-group">
+                            <label class="form-label">تاریخ</label>
+                            <input type="date" class="form-input" id="trade-date" value="${new Date().toISOString().split('T')[0]}">
                         </div>
-                        
-                        <div class="settings-group">
-                            <h3>وارد کردن استیتمنت متاتریدر</h3>
-                            <input type="file" accept=".html" onchange="importMT5Statement(this.files[0])">
-                            <small>فایل HTML استیتمنت را آپلود کنید</small>
+                        <div class="form-group">
+                            <label class="form-label">ساعت ورود</label>
+                            <input type="time" class="form-input" id="trade-time">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">نماد</label>
+                            <input type="text" class="form-input" id="trade-symbol" placeholder="EURUSD">
                         </div>
                     </div>
-                </div>
-            `;
-        }
 
-        async function updateSetting(key, value) {
-            await db.put('settings', { key, value });
-            
-            // Apply theme changes immediately
-            if (key === 'accentColor') {
-                document.documentElement.style.setProperty('--accent', value);
+                    <div class="grid grid-2" style="margin-bottom:20px;">
+                        <div class="form-group">
+                            <label class="form-label">نوع معامله</label>
+                            <select class="form-select" id="trade-type">
+                                <option value="buy">خرید (Long)</option>
+                                <option value="sell">فروش (Short)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">نتیجه ($)</label>
+                            <input type="number" class="form-input" id="trade-result" step="0.01" placeholder="+100 یا -50">
+                        </div>
+                    </div>
+
+                    <!-- ============================================ -->
+                    <!-- PSYCHOLOGY SECTION - THE MOST IMPORTANT PART -->
+                    <!-- ============================================ -->
+                    <div style="background: linear-gradient(135deg, rgba(165,94,234,0.15), rgba(0,212,170,0.15)); border-radius:15px; padding:20px; margin:20px 0; border: 1px solid var(--accent-purple);">
+                        <h4 style="color:var(--accent-purple); margin-bottom:15px;">🧠 تحلیل روانشناسی معامله</h4>
+                        
+                        <!-- Emotional State Rating -->
+                        <div class="form-group">
+                            <label class="form-label">😊 وضعیت احساسی قبل از معامله (۱ تا ۱۰)</label>
+                            <div style="display:flex;align-items:center;gap:15px;">
+                                <div class="emotion-scale" id="emotion-before-scale">
+                                    ${[1,2,3,4,5,6,7,8,9,10].map(n => `
+                                        <div class="emotion-btn ${n <= 3 ? 'low' : n <= 7 ? 'medium' : 'high'}" 
+                                             data-value="${n}" onclick="app.selectEmotion('before', ${n})">${n}</div>
+                                    `).join('')}
+                                </div>
+                                <span id="emotion-before-label" style="min-width:80px;">متوسط</span>
+                            </div>
+                        </div>
+
+                        <!-- Emotional State After -->
+                        <div class="form-group">
+                            <label class="form-label">😐 وضعیت احساسی بعد از معامله (۱ تا ۱۰)</label>
+                            <div style="display:flex;align-items:center;gap:15px;">
+                                <div class="emotion-scale" id="emotion-after-scale">
+                                    ${[1,2,3,4,5,6,7,8,9,10].map(n => `
+                                        <div class="emotion-btn ${n <= 3 ? 'low' : n <= 7 ? 'medium' : 'high'}" 
+                                             data-value="${n}" onclick="app.selectEmotion('after', ${n})">${n}</div>
+                                    `).join('')}
+                                </div>
+                                <span id="emotion-after-label" style="min-width:80px;">متوسط</span>
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="emotion-before-value" value="5">
+                        <input type="hidden" id="emotion-after-value" value="5">
+
+                        <!-- Psychology Checklist -->
+                        <div style="margin-top:25px;">
+                            <label class="form-label" style="font-size:1.1rem;">📋 چک‌لیست روانشناسی معاملاتی (می‌توانید چند مورد انتخاب کنید)</label>
+                            
+                            ${Object.entries(PsychologyEngine.EMOTION_CATEGORIES).map(([key, category]) => `
+                                <div style="margin:15px 0;background:var(--glass);border-radius:12px;padding:15px;">
+                                    <h5 style="color:var(--accent-gold);margin-bottom:10px;">${category.label}</h5>
+                                    <div style="display:flex;flex-direction:column;gap:8px;">
+                                        ${category.items.map(item => `
+                                            <div class="psych-check-item" 
+                                                 data-emotion="${item.id}" 
+                                                 data-positive="${item.positive || false}"
+                                                 onclick="app.togglePsychCheck(this)">
+                                                <div class="checkbox-indicator">✓</div>
+                                                <div>
+                                                    <div style="font-weight:500;">${item.label}</div>
+                                                    <small style="opacity:0.7;">${item.description}</small>
+                                                </div>
+                                                ${item.positive ? '<span class="tag tag-success" style="margin-right:auto;">مثبت</span>' : 
+                                                  item.positive === false ? '<span class="tag tag-danger" style="margin-right:auto;">منفی</span>' : ''}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Deviation from Plan -->
+                        <div class="form-group" style="margin-top:20px;">
+                            <label class="form-label">📐 میزان انطباق با پلن معاملاتی</label>
+                            <select class="form-select" id="plan-compliance">
+                                <option value="full">✅ کاملاً طبق پلن</option>
+                                <option value="partial">⚠️ تا حدی طبق پلن</option>
+                                <option value="none">❌ کاملاً خارج از پلن</option>
+                            </select>
+                        </div>
+
+                        <!-- Reason for Deviation -->
+                        <div class="form-group" id="deviation-reason-group" style="display:none;">
+                            <label class="form-label">🤔 دلیل انحراف از پلن</label>
+                            <textarea class="form-textarea" id="deviation-reason" rows="2" 
+                                      placeholder="چرا از پلن خارج شدید؟ چه چیزی باعث شد؟..."></textarea>
+                        </div>
+
+                        <!-- Self-Reflection -->
+                        <div class="form-group">
+                            <label class="form-label">📝 خودارزیابی و یادداشت روانشناسی</label>
+                            <textarea class="form-textarea" id="psych-notes" rows="4" 
+                                      placeholder="چه احساسی داشتید؟ چه چیزی یاد گرفتید؟ چطور می‌توانید بهتر عمل کنید؟..."></textarea>
+                        </div>
+
+                        <!-- Lesson Learned -->
+                        <div class="form-group">
+                            <label class="form-label">💡 درس آموخته شده از این معامله</label>
+                            <input type="text" class="form-input" id="lesson-learned" 
+                                   placeholder="مهم‌ترین درسی که از این معامله گرفتید...">
+                        </div>
+                    </div>
+
+                    <div style="display:flex;gap:10px;margin-top:20px;">
+                        <button class="btn btn-primary" onclick="app.saveTrade()" style="flex:1;">💾 ثبت معامله و تحلیل روانشناسی</button>
+                        <button class="btn btn-ghost" onclick="app.closeModal()">انصراف</button>
+                    </div>
+                `;
+
+                modal.classList.add('active');
+
+                // Show/hide deviation reason
+                document.getElementById('plan-compliance').addEventListener('change', (e) => {
+                    const reasonGroup = document.getElementById('deviation-reason-group');
+                    reasonGroup.style.display = e.target.value === 'full' ? 'none' : 'block';
+                });
             }
-        }
 
-        async function exportData() {
-            const trades = await db.getAll('trades');
-            const checklist = await db.getAll('checklist');
-            
-            // Create JSON backup
-            const backup = JSON.stringify({ trades, checklist, exportDate: new Date().toISOString() });
-            
-            // Download as file
-            const blob = new Blob([backup], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `forex-journal-backup-${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            
-            alert('✅ فایل پشتیبان با موفقیت ذخیره شد');
-        }
-
-        async function importData() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = async (e) => {
-                const file = e.target.files[0];
-                const text = await file.text();
-                const data = JSON.parse(text);
+            selectEmotion(type, value) {
+                document.getElementById(`emotion-${type}-value`).value = value;
                 
-                if (confirm('آیا از بازیابی داده‌ها مطمئن هستید؟ این کار داده‌های فعلی را جایگزین می‌کند.')) {
-                    // Clear existing data
-                    const tx = db.transaction(['trades', 'checklist'], 'readwrite');
-                    await tx.objectStore('trades').clear();
-                    await tx.objectStore('checklist').clear();
-                    
-                    // Import new data
-                    for (const trade of data.trades) await db.add('trades', trade);
-                    for (const item of data.checklist) await db.add('checklist', item);
-                    
-                    alert('✅ داده‌ها با موفقیت بازیابی شدند');
-                    location.reload();
-                }
-            };
-            input.click();
-        }
+                // Update visual
+                const buttons = document.querySelectorAll(`#emotion-${type}-scale .emotion-btn`);
+                buttons.forEach(btn => {
+                    btn.classList.toggle('selected', parseInt(btn.dataset.value) === value);
+                });
 
-        async function importMT5Statement(file) {
-            if (!file) return;
-            
-            const text = await file.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(text, 'text/html');
-            
-            // Parse MT5 HTML statement (simplified)
-            const rows = doc.querySelectorAll('table tr');
-            let importedCount = 0;
-            
-            for (const row of rows) {
-                const cells = row.querySelectorAll('td');
-                if (cells.length >= 10) {
-                    const trade = {
-                        date: cells[1]?.textContent?.trim(),
-                        symbol: cells[4]?.textContent?.trim(),
-                        result: parseFloat(cells[9]?.textContent?.replace('$', '').trim()) || 0,
-                        timestamp: new Date().toISOString(),
-                        source: 'MT5_IMPORT'
-                    };
-                    
-                    if (trade.date && trade.symbol) {
-                        await db.add('trades', trade);
-                        importedCount++;
+                // Update label
+                const label = document.getElementById(`emotion-${type}-label`);
+                const labels = {1: 'بسیار بد', 2: 'بد', 3: 'ضعیف', 4: 'نسبتاً ضعیف', 5: 'متوسط', 
+                               6: 'نسبتاً خوب', 7: 'خوب', 8: 'بسیار خوب', 9: 'عالی', 10: 'بی‌نظیر'};
+                label.textContent = labels[value];
+            }
+
+            togglePsychCheck(element) {
+                element.classList.toggle('selected');
+            }
+
+            async saveTrade() {
+                const selectedEmotions = [];
+                document.querySelectorAll('.psych-check-item.selected').forEach(item => {
+                    selectedEmotions.push(item.dataset.emotion);
+                });
+
+                const planCompliance = document.getElementById('plan-compliance').value;
+
+                const trade = {
+                    date: document.getElementById('trade-date').value,
+                    time: document.getElementById('trade-time').value,
+                    symbol: document.getElementById('trade-symbol').value.toUpperCase(),
+                    type: document.getElementById('trade-type').value,
+                    profit: parseFloat(document.getElementById('trade-result').value) || 0,
+                    emotionBefore: parseInt(document.getElementById('emotion-before-value').value),
+                    emotionAfter: parseInt(document.getElementById('emotion-after-value').value),
+                    emotions: selectedEmotions,
+                    planCompliance: planCompliance,
+                    deviatedFromPlan: planCompliance !== 'full',
+                    deviationReason: document.getElementById('deviation-reason')?.value || '',
+                    psychNotes: document.getElementById('psych-notes').value,
+                    lessonLearned: document.getElementById('lesson-learned').value,
+                    timestamp: new Date().toISOString(),
+                    day: new Date().toLocaleDateString('fa-IR', { weekday: 'long' })
+                };
+
+                await this.db.db.add('trades', trade);
+                this.closeModal();
+                this.loadDashboard();
+                this.showNotification('✅ معامله و تحلیل روانشناسی با موفقیت ثبت شد');
+            }
+
+            closeModal() {
+                document.getElementById('modal-overlay').classList.remove('active');
+            }
+
+            showNotification(message) {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: var(--accent);
+                    color: var(--bg-primary);
+                    padding: 15px 25px;
+                    border-radius: 12px;
+                    font-weight: bold;
+                    z-index: 9999;
+                    animation: slideIn 0.3s ease;
+                `;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                setTimeout(() => notification.remove(), 3000);
+            }
+
+            async loadJournal() {
+                const trades = await this.db.db.getAll('trades');
+                const content = document.getElementById('main-content');
+                
+                content.innerHTML = `
+                    <div class="slide-up">
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="card-title">📝 ژورنال روانشناسی معاملات</span>
+                                <button class="btn btn-primary" onclick="app.openNewTradeForm()">+ معامله جدید</button>
+                            </div>
+                            ${trades.reverse().map(trade => this.renderTradePsychCard(trade)).join('')}
+                            ${trades.length === 0 ? '<p style="text-align:center;">هنوز معامله‌ای ثبت نشده</p>' : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            async loadPsychology() {
+                const trades = await this.db.db.getAll('trades');
+                const psychEngine = new PsychologyEngine(trades);
+                const emotionFrequency = psychEngine.getEmotionFrequency(trades);
+                const overallScore = psychEngine.getOverallPsychologyScore(trades);
+
+                // Sort emotions by frequency
+                const sortedEmotions = Object.entries(emotionFrequency)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10);
+
+                const content = document.getElementById('main-content');
+                content.innerHTML = `
+                    <div class="slide-up">
+                        <h2 style="margin-bottom:20px;">🧠 پروفایل روانشناسی معاملاتی شما</h2>
+
+                        <div class="psych-profile">
+                            <h3>نمره کلی سلامت روانشناسی: ${overallScore}/10</h3>
+                            <div class="progress-bar" style="margin:15px 0;">
+                                <div class="progress-fill" style="width:${overallScore * 10}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="card-title">📊 فراوانی احساسات و رفتارها</span>
+                            </div>
+                            ${sortedEmotions.map(([emotion, count]) => {
+                                const percentage = ((count / trades.length) * 100).toFixed(1);
+                                const isNegative = !emotion.includes('followed') && !emotion.includes('calm') && !emotion.includes('focused');
+                                return `
+                                    <div style="margin:15px 0;">
+                                        <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                                            <span>${emotion}</span>
+                                            <span>${count} بار (${percentage}%)</span>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width:${percentage}%; background:${isNegative ? 'var(--accent-red)' : 'var(--accent)'};"></div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                            ${sortedEmotions.length === 0 ? '<p>داده‌ای برای نمایش وجود ندارد</p>' : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            async loadAnalytics() {
+                const trades = await this.db.db.getAll('trades');
+                const content = document.getElementById('main-content');
+                
+                content.innerHTML = `
+                    <div class="slide-up">
+                        <h2 style="margin-bottom:20px;">📈 آنالیز روانشناسی معاملات</h2>
+                        <div class="card">
+                            <div class="chart-wrapper">
+                                <canvas id="emotionChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="chart-wrapper">
+                                <canvas id="disciplineChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                setTimeout(() => this.renderAnalyticsCharts(trades), 100);
+            }
+
+            renderAnalyticsCharts(trades) {
+                // Emotion correlation chart
+                const psychEngine = new PsychologyEngine(trades);
+                const emotionData = psychEngine.getEmotionFrequency(trades);
+                
+                new Chart(document.getElementById('emotionChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(emotionData).slice(0, 10),
+                        datasets: [{
+                            label: 'تعداد دفعات',
+                            data: Object.values(emotionData).slice(0, 10),
+                            backgroundColor: 'rgba(165, 94, 234, 0.5)',
+                            borderColor: '#a55eea'
+                        }]
                     }
-                }
+                });
+
+                // Discipline score over time
+                const scores = trades.map(t => psychEngine.calculateDisciplineScore(t));
+                new Chart(document.getElementById('disciplineChart'), {
+                    type: 'line',
+                    data: {
+                        labels: trades.map((_, i) => `معامله ${i + 1}`),
+                        datasets: [{
+                            label: 'نمره انضباط',
+                            data: scores,
+                            borderColor: '#00d4aa',
+                            tension: 0.4
+                        }]
+                    }
+                });
             }
-            
-            alert(`✅ ${importedCount} معامله از استیتمنت وارد شد`);
-            renderJournal();
-        }
 
-        // ============================================
-        // UTILITY FUNCTIONS
-        // ============================================
+            async loadInsights() {
+                const trades = await this.db.db.getAll('trades');
+                const psychEngine = new PsychologyEngine(trades);
+                
+                // Gather all recommendations
+                const allRecommendations = [];
+                trades.forEach(trade => {
+                    const analysis = psychEngine.analyzePsychology(trade);
+                    allRecommendations.push(...analysis.recommendations);
+                });
 
-        function getDayName(dayIndex) {
-            const days = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
-            return days[dayIndex];
-        }
-
-        function closeModal() {
-            const modal = document.querySelector('.modal');
-            if (modal) modal.remove();
-        }
-
-        // ============================================
-        // INITIALIZATION
-        // ============================================
-
-        async function initApp() {
-            try {
-                await initDB();
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('app').style.display = 'block';
-                renderChecklist(); // Default tab
-            } catch (error) {
-                console.error('App initialization failed:', error);
-                document.getElementById('loading').innerHTML = '<h2 style="color:red;">خطا در بارگذاری برنامه</h2>';
+                const content = document.getElementById('main-content');
+                content.innerHTML = `
+                    <div class="slide-up">
+                        <h2 style="margin-bottom:20px;">💡 بینش‌ها و توصیه‌های شخصی‌سازی شده</h2>
+                        ${allRecommendations.length > 0 ? allRecommendations.map(rec => `
+                            <div class="alert-card alert-${rec.severity === 'high' ? 'danger' : 'warning'}">
+                                <strong>${rec.type === 'danger' ? '🔴' : rec.type === 'warning' ? '🟡' : '🟢'}</strong>
+                                ${rec.message}
+                            </div>
+                        `).join('') : '<div class="alert-card alert-success">✅ رفتار معاملاتی شما در وضعیت خوبی قرار دارد</div>'}
+                    </div>
+                `;
             }
         }
 
-        // Register Service Worker
+        // Initialize app
+        window.app = new TradePsychologyApp();
+        document.addEventListener('DOMContentLoaded', () => window.app.init());
+
+        // Close modal on overlay click
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'modal-overlay') {
+                window.app.closeModal();
+            }
+        });
+
+        // Service Worker
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(reg => console.log('SW registered'))
-                    .catch(err => console.log('SW registration failed'));
-            });
+            navigator.serviceWorker.register('/service-worker.js');
         }
-
-        // Start the app
-        initApp();
     </script>
-
 </body>
 </html>
