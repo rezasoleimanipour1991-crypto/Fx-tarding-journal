@@ -55,10 +55,15 @@
   }
 
   /* Register the real service worker file for offline support and PWA store-readiness.
-     This is safe to fail silently — the app works fully without it. */
+     This is safe to fail silently — the app works fully without it.
+     We also actively call update() on every load so a fixed/updated
+     service worker takes over as soon as possible, rather than waiting
+     for the browser's normal (much slower) background update check. */
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", function () {
-      navigator.serviceWorker.register("/sw.js").catch(function (err) {
+      navigator.serviceWorker.register("/sw.js").then(function (reg) {
+        reg.update().catch(function () {});
+      }).catch(function (err) {
         console.warn("Service worker registration failed (app still works fully without it):", err);
       });
     });
@@ -460,11 +465,11 @@ const DEFAULT_STRATEGIES = [
 ];
 
 const NEWS_EVENTS = [
-  { id: "n1", date: "2026-07-01", currency: "USD", event: "Non-Farm Payrolls", impact: "High", forecast: "180K", previous: "165K", actual: "\u2014" },
-  { id: "n2", date: "2026-07-01", currency: "EUR", event: "ECB Rate Decision", impact: "High", forecast: "3.75%", previous: "3.75%", actual: "3.75%" },
-  { id: "n3", date: "2026-07-02", currency: "GBP", event: "GDP m/m", impact: "Medium", forecast: "0.2%", previous: "0.1%", actual: "\u2014" },
-  { id: "n4", date: "2026-07-02", currency: "USD", event: "ISM Manufacturing PMI", impact: "Medium", forecast: "49.5", previous: "48.7", actual: "\u2014" },
-  { id: "n5", date: "2026-07-03", currency: "JPY", event: "BoJ Policy Statement", impact: "High", forecast: "\u2014", previous: "\u2014", actual: "\u2014" },
+  { id: "n1", date: "2026-07-01", currency: "USD", event: "Non-Farm Payrolls", impact: "High", forecast: "180K", previous: "165K", actual: "\u2014", media: [] },
+  { id: "n2", date: "2026-07-01", currency: "EUR", event: "ECB Rate Decision", impact: "High", forecast: "3.75%", previous: "3.75%", actual: "3.75%", media: [] },
+  { id: "n3", date: "2026-07-02", currency: "GBP", event: "GDP m/m", impact: "Medium", forecast: "0.2%", previous: "0.1%", actual: "\u2014", media: [] },
+  { id: "n4", date: "2026-07-02", currency: "USD", event: "ISM Manufacturing PMI", impact: "Medium", forecast: "49.5", previous: "48.7", actual: "\u2014", media: [] },
+  { id: "n5", date: "2026-07-03", currency: "JPY", event: "BoJ Policy Statement", impact: "High", forecast: "\u2014", previous: "\u2014", actual: "\u2014", media: [] },
 ];
 
 const EDU_NOTES = [
@@ -679,6 +684,119 @@ function donutChart(data, opts) {
 
 // helper to allow chaining `.also()` on svg elements for setting textContent inline
 SVGElement.prototype.also = function (fn) { fn(this); return this; };
+"use strict";
+
+/* ============================================================
+   CSV PARSER — minimal, dependency-free, handles quoted fields
+   containing commas, escaped quotes (""), and CRLF/LF newlines.
+   Returns an array of row-arrays (strings). First row is
+   typically the header; caller decides how to use it.
+   ============================================================ */
+function parseCSV(text) {
+  const rows = [];
+  let row = [];
+  let field = "";
+  let inQuotes = false;
+  let i = 0;
+  const len = text.length;
+
+  while (i < len) {
+    const char = text[i];
+
+    if (inQuotes) {
+      if (char === '"') {
+        if (text[i + 1] === '"') { field += '"'; i += 2; continue; }
+        inQuotes = false; i++; continue;
+      }
+      field += char; i++; continue;
+    }
+
+    if (char === '"') { inQuotes = true; i++; continue; }
+    if (char === ",") { row.push(field); field = ""; i++; continue; }
+    if (char === "\r") { i++; continue; } // normalize CRLF -> LF
+    if (char === "\n") {
+      row.push(field); field = "";
+      rows.push(row); row = [];
+      i++; continue;
+    }
+    field += char; i++;
+  }
+  // last field/row (no trailing newline)
+  if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
+
+  // Drop fully-empty trailing rows (common with trailing newlines)
+  while (rows.length && rows[rows.length - 1].every((c) => c.trim() === "")) rows.pop();
+
+  return rows;
+}
+
+/* ============================================================
+   COLUMN AUTO-DETECTION — guesses which CSV column corresponds
+   to each trade field, based on common header names used by
+   MT4/MT5 CSV exports and typical broker statement exports.
+   The user can always override the guess before importing.
+   ============================================================ */
+const FIELD_ALIASES = {
+  date: ["date", "open time", "opentime", "time", "date/time"],
+  symbol: ["symbol", "pair", "instrument"],
+  type: ["type", "action", "side", "direction"],
+  volume: ["volume", "lots", "size", "lot size", "lot"],
+  entryPrice: ["price", "open price", "openprice", "entry", "entry price"],
+  exitPrice: ["close price", "closeprice", "exit", "exit price"],
+  profit: ["profit", "pnl", "p&l", "p/l", "net profit"],
+  commission: ["commission", "comm"],
+  swap: ["swap"],
+  sl: ["s / l", "s/l", "stop loss", "sl"],
+  tp: ["t / p", "t/p", "take profit", "tp"],
+};
+
+function guessColumnMapping(headerRow) {
+  const normalized = headerRow.map((h) => h.trim().toLowerCase());
+  const mapping = {};
+  Object.keys(FIELD_ALIASES).forEach((field) => {
+    const aliases = FIELD_ALIASES[field];
+    let foundIdx = -1;
+    for (const alias of aliases) {
+      foundIdx = normalized.findIndex((h) => h === alias);
+      if (foundIdx !== -1) break;
+    }
+    if (foundIdx === -1) {
+      // fallback: partial match
+      for (const alias of aliases) {
+        foundIdx = normalized.findIndex((h) => h.includes(alias));
+        if (foundIdx !== -1) break;
+      }
+    }
+    mapping[field] = foundIdx; // -1 if not found
+  });
+  return mapping;
+}
+
+/* Parse a "Buy"/"Sell"/"buy"/"sell"/"0"/"1" style type value into "Buy" or "Sell". */
+function normalizeTradeType(raw) {
+  const v = String(raw || "").trim().toLowerCase();
+  if (v === "buy" || v === "0" || v === "long") return "Buy";
+  if (v === "sell" || v === "1" || v === "short") return "Sell";
+  return "Buy";
+}
+
+/* Parse a date string in several common formats into YYYY-MM-DD.
+   Falls back to today's date if unparseable. */
+function normalizeDate(raw) {
+  if (!raw) return new Date().toISOString().slice(0, 10);
+  const s = String(raw).trim();
+  // Try native Date parsing first (handles ISO and many common formats)
+  const asDate = new Date(s.replace(/\./g, "-").replace(" ", "T"));
+  if (!isNaN(asDate.getTime())) return asDate.toISOString().slice(0, 10);
+  return new Date().toISOString().slice(0, 10);
+}
+
+function parseNumber(raw) {
+  if (raw === undefined || raw === null || raw === "") return 0;
+  const cleaned = String(raw).replace(/[^0-9.\-]/g, "");
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? 0 : n;
+}
 "use strict";
 
 /* ============================================================
@@ -1718,77 +1836,343 @@ function openAddTradeModal(state, actions, existingTrade) {
 "use strict";
 
 function renderImport(state, actions) {
-  if (state._importFormat === undefined) state._importFormat = "MT4";
-  if (state._importStatus === undefined) state._importStatus = "idle";
+  if (state._importStage === undefined) state._importStage = "upload"; // upload -> mapping -> preview -> done
+  if (state._importRows === undefined) state._importRows = null;
+  if (state._importMapping === undefined) state._importMapping = null;
+  if (state._importFileName === undefined) state._importFileName = "";
+  if (state._importError === undefined) state._importError = null;
 
-  const formatChips = row(["CSV", "Excel", "MT4", "MT5"].map((f) => chip(f, state._importFormat === f, () => { state._importFormat = f; actions.rerender(); })), { gap: 8 });
+  const container = el("div", {});
 
-  function simulateImport() {
-    state._importStatus = "parsing";
-    actions.rerender();
-    setTimeout(() => {
-      const fmt = state._importFormat;
-      const fakeImported = Array.from({ length: 5 }).map((_, i) => ({
-        id: uid("IMP"), date: new Date().toISOString().slice(0, 10), pair: state.symbols[i % state.symbols.length],
-        type: i % 2 === 0 ? "Buy" : "Sell", entry: (1.1 + i * 0.01).toFixed(4), sl: "\u2014", tp: "\u2014",
-        lot: (0.5 + i * 0.1).toFixed(2), risk: "1.0", commission: "-2.00", result: i % 3 === 0 ? "Loss" : "Win",
-        pnl: i % 3 === 0 ? -45.2 : 112.4, equity: 0, strategy: "Imported", session: "London", hour: 10, day: "Mon",
-        emotion: "Neutral", confidence: 3, mistakes: [], notes: `Imported from ${fmt} statement`,
-        account: (state.accounts[0] && state.accounts[0].name) || "", media: [],
-      }));
-      actions.importTrades(fakeImported);
-      state._importStatus = "done";
-      actions.rerender();
-    }, 1200);
+  function rebuild() {
+    clear(container);
+    container.appendChild(buildStage());
   }
 
-  const dropZone = el("div", { style: { borderRadius: "12px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px", padding: "40px 16px", border: `1.5px dashed ${C.border}` } }, [
-    Icons.upload(26, C.accent),
-    el("span", { style: { color: C.text, fontSize: "13px", fontWeight: "600" } }, `Drop your ${state._importFormat} statement here`),
-    el("span", { style: { color: C.subtext, fontSize: "11px" } }, "or tap to browse files"),
-    el("button", {
-      onClick: simulateImport, disabled: state._importStatus === "parsing",
-      style: { marginTop: "8px", padding: "8px 20px", borderRadius: "8px", fontSize: "12px", fontWeight: "700", background: C.accent, color: "#0F172A", border: "none", cursor: "pointer" },
-    }, state._importStatus === "parsing" ? "Parsing..." : "Select File"),
-  ]);
-
-  const uploadCard = Card([sectionTitle("Upload Trading Statement"), formatChips, el("div", { style: { marginTop: "12px" } }, [dropZone])]);
-
-  const statusBlocks = [];
-  if (state._importStatus === "parsing") {
-    statusBlocks.push(Card([row([Icons.refresh(16, C.accent), el("span", { style: { color: C.text, fontSize: "13px" } }, `Parsing ${state._importFormat} statement and extracting trades...`)], { gap: 12 })]));
-  }
-  if (state._importStatus === "done") {
-    statusBlocks.push(Card([
-      row([Icons.check(16, C.profit), el("span", { style: { color: C.text, fontSize: "13px", fontWeight: "600" } }, "5 trades imported successfully")], { gap: 8, style: { marginBottom: "4px" } }),
-      el("span", { style: { color: C.subtext, fontSize: "12px" } }, "New entries have been added to your Journal."),
-    ]));
+  function resetImport() {
+    state._importStage = "upload";
+    state._importRows = null;
+    state._importMapping = null;
+    state._importFileName = "";
+    state._importError = null;
+    rebuild();
   }
 
-  const fieldsCard = Card([
-    sectionTitle("Fields Extracted"),
-    el("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" } },
-      ["Date", "Symbol", "Trade Type", "Volume", "Entry Price", "Exit Price", "Profit", "Commission", "Swap", "Trade Duration"].map((f) =>
-        row([Icons.check(12, C.profit), el("span", { style: { color: C.subtext, fontSize: "12px" } }, f)], { gap: 6 })
-      )
-    ),
-  ]);
+  async function handleFile(file) {
+    state._importError = null;
+    state._importFileName = file.name;
+    const name = file.name.toLowerCase();
 
-  return col([uploadCard, ...statusBlocks, fieldsCard], { gap: 16, style: { paddingBottom: "16px" } });
+    if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
+      state._importError = "Excel (.xlsx/.xls) files can't be read directly in-browser without an extra library. Please open the file in Excel or Google Sheets and use \"Save As\" / \"Export\" to CSV first, then upload the CSV here.";
+      rebuild();
+      return;
+    }
+    if (name.endsWith(".htm") || name.endsWith(".html")) {
+      state._importError = "MT4's default export is an HTML report, which this importer can't parse yet. In MT4/MT5, use \"Save as Report\" and choose CSV instead (Account History tab \u2192 right-click \u2192 Report \u2192 Save as CSV), then upload that file here.";
+      rebuild();
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const rows = parseCSV(text);
+      if (rows.length < 2) {
+        state._importError = "This file doesn't seem to contain any data rows.";
+        rebuild();
+        return;
+      }
+      state._importRows = rows;
+      state._importMapping = guessColumnMapping(rows[0]);
+      state._importStage = "mapping";
+      rebuild();
+    } catch (err) {
+      state._importError = "Couldn't read this file: " + (err && err.message ? err.message : String(err));
+      rebuild();
+    }
+  }
+
+  function buildUploadStage() {
+    const fileInput = el("input", { type: "file", accept: ".csv,.txt,.xlsx,.xls,.htm,.html", style: { display: "none" } });
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = "";
+      if (file) handleFile(file);
+    });
+
+    const dropZone = el("div", {
+      style: { borderRadius: "12px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px", padding: "40px 16px", border: `1.5px dashed ${C.border}`, cursor: "pointer" },
+      onClick: () => fileInput.click(),
+    }, [
+      Icons.upload(26, C.accent),
+      el("span", { style: { color: C.text, fontSize: "13px", fontWeight: "600" } }, "Tap to choose a CSV file"),
+      el("span", { style: { color: C.subtext, fontSize: "11px", textAlign: "center" } }, "Exported from your broker, MT4, or MT5 (CSV format)"),
+      el("button", {
+        style: { marginTop: "8px", padding: "8px 20px", borderRadius: "8px", fontSize: "12px", fontWeight: "700", background: C.accent, color: "#0F172A", border: "none", cursor: "pointer" },
+      }, "Select File"),
+    ]);
+
+    const uploadCard = Card([sectionTitle("Upload Trading Statement"), dropZone, fileInput]);
+
+    const errorBlock = state._importError
+      ? Card([row([Icons.alert(16, C.loss), el("span", { style: { color: C.text, fontSize: "13px", lineHeight: "1.5" } }, state._importError)], { gap: 10 })], { style: { borderColor: C.loss } })
+      : null;
+
+    const helpCard = Card([
+      sectionTitle("How to get a CSV file"),
+      col([
+        el("div", { style: { color: C.text, fontSize: "12.5px", fontWeight: "600" } }, "MT4 / MT5"),
+        el("div", { style: { color: C.subtext, fontSize: "12px", lineHeight: "1.6" } }, "Terminal \u2192 Account History tab \u2192 right-click \u2192 Report \u2192 Save as CSV (select \u201cAll History\u201d first, or you'll only get the last 3 months)."),
+      ], { gap: 4, style: { marginBottom: "10px" } }),
+      col([
+        el("div", { style: { color: C.text, fontSize: "12.5px", fontWeight: "600" } }, "Other brokers"),
+        el("div", { style: { color: C.subtext, fontSize: "12px", lineHeight: "1.6" } }, "Look for \u201cExport\u201d or \u201cDownload\u201d on your account history / trade history page \u2014 nearly every broker offers this, usually as CSV or Excel."),
+      ], { gap: 4 }),
+    ]);
+
+    const fieldsCard = Card([
+      sectionTitle("Columns This Importer Recognizes"),
+      el("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" } },
+        ["Date", "Symbol", "Type (Buy/Sell)", "Volume/Lots", "Entry Price", "Exit Price", "Profit", "Commission", "Swap", "Stop Loss", "Take Profit"].map((f) =>
+          row([Icons.check(12, C.profit), el("span", { style: { color: C.subtext, fontSize: "12px" } }, f)], { gap: 6 })
+        )
+      ),
+      el("div", { style: { color: C.subtext, fontSize: "11px", marginTop: "8px", lineHeight: "1.5" } }, "On the next step you'll see exactly which column was matched to each field, and can fix any that were guessed wrong before importing."),
+    ]);
+
+    return col([uploadCard, errorBlock, helpCard, fieldsCard], { gap: 16, style: { paddingBottom: "16px" } });
+  }
+
+  function buildMappingStage() {
+    const rows = state._importRows;
+    const header = rows[0];
+    const dataRowCount = rows.length - 1;
+
+    const FIELDS = [
+      { key: "date", label: "Date", required: true },
+      { key: "symbol", label: "Symbol / Pair", required: true },
+      { key: "type", label: "Type (Buy/Sell)", required: false },
+      { key: "volume", label: "Volume / Lots", required: false },
+      { key: "entryPrice", label: "Entry Price", required: false },
+      { key: "exitPrice", label: "Exit Price", required: false },
+      { key: "profit", label: "Profit", required: true },
+      { key: "commission", label: "Commission", required: false },
+      { key: "swap", label: "Swap", required: false },
+      { key: "sl", label: "Stop Loss", required: false },
+      { key: "tp", label: "Take Profit", required: false },
+    ];
+
+    const mappingRows = FIELDS.map((f) => {
+      const options = [el("option", { value: "-1", selected: state._importMapping[f.key] === -1 }, "\u2014 Not in file \u2014")]
+        .concat(header.map((h, idx) => el("option", { value: String(idx), selected: state._importMapping[f.key] === idx }, h || `Column ${idx + 1}`)));
+      const select = el("select", { style: { background: C.card, border: `1px solid ${C.border}`, borderRadius: "10px", padding: "8px 10px", color: C.text, fontSize: "13px", width: "100%" } }, options);
+      select.addEventListener("change", (e) => { state._importMapping[f.key] = Number(e.target.value); });
+      return field(f.label + (f.required ? " *" : ""), select);
+    });
+
+    const mappingCard = Card([
+      sectionTitle("Match Columns", pill(`${dataRowCount} rows found`, C.accent, "rgba(56,189,248,0.14)")),
+      el("div", { style: { color: C.subtext, fontSize: "11.5px", marginBottom: "4px" } }, `File: ${state._importFileName}`),
+      col(mappingRows, { gap: 10 }),
+    ], { style: { gap: "10px" } });
+
+    const backBtn = ghostButton("Choose a Different File", resetImport, { bg: C.cardAlt, color: C.subtext });
+    const continueBtn = primaryButton("Preview Import", () => {
+      if (state._importMapping.date === -1 || state._importMapping.symbol === -1 || state._importMapping.profit === -1) {
+        state._importError = "Date, Symbol, and Profit columns are required \u2014 please select them above.";
+        rebuild();
+        return;
+      }
+      state._importError = null;
+      state._importStage = "preview";
+      rebuild();
+    }, {});
+
+    const errorBlock = state._importError
+      ? Card([row([Icons.alert(14, C.loss), el("span", { style: { color: C.text, fontSize: "12.5px" } }, state._importError)], { gap: 8 })], { style: { borderColor: C.loss } })
+      : null;
+
+    return col([mappingCard, errorBlock, continueBtn, backBtn], { gap: 12, style: { paddingBottom: "16px" } });
+  }
+
+  function buildTradesFromMapping() {
+    const rows = state._importRows.slice(1); // skip header
+    const m = state._importMapping;
+    const get = (row, key) => (m[key] !== -1 && m[key] !== undefined ? row[m[key]] : "");
+
+    return rows.map((r) => {
+      const profit = parseNumber(get(r, "profit"));
+      const commission = m.commission !== -1 ? parseNumber(get(r, "commission")) : 0;
+      const swap = m.swap !== -1 ? parseNumber(get(r, "swap")) : 0;
+      const dateStr = normalizeDate(get(r, "date"));
+      return {
+        id: uid("IMP"),
+        date: dateStr,
+        time: "00:00:00",
+        pair: (get(r, "symbol") || "UNKNOWN").trim().toUpperCase(),
+        type: normalizeTradeType(get(r, "type")),
+        entry: get(r, "entryPrice") || "\u2014",
+        sl: get(r, "sl") || "\u2014",
+        tp: get(r, "tp") || "\u2014",
+        lot: get(r, "volume") || "\u2014",
+        risk: "\u2014",
+        commission: commission ? String(commission) : "",
+        result: profit > 0 ? "Win" : profit < 0 ? "Loss" : "Breakeven",
+        pnl: profit + swap, // include swap in net PnL if present
+        equity: 0,
+        strategy: "Imported",
+        session: suggestSession("00:00:00"),
+        hour: 0,
+        day: new Date(dateStr).toLocaleDateString("en-US", { weekday: "short" }),
+        emotion: "Neutral", confidence: 3, mistakes: [], notes: `Imported from ${state._importFileName}`,
+        specialNotes: "",
+        account: (state.accounts[0] && state.accounts[0].name) || "",
+        media: [],
+      };
+    });
+  }
+
+  function buildPreviewStage() {
+    let trades;
+    try {
+      trades = buildTradesFromMapping();
+    } catch (err) {
+      return Card([row([Icons.alert(16, C.loss), el("span", { style: { color: C.text, fontSize: "13px" } }, "Something went wrong building the preview: " + (err && err.message ? err.message : String(err)))], { gap: 10 })]);
+    }
+
+    const totalPnl = trades.reduce((s, t) => s + t.pnl, 0);
+    const wins = trades.filter((t) => t.result === "Win").length;
+    const losses = trades.filter((t) => t.result === "Loss").length;
+
+    const summaryCard = Card([
+      sectionTitle("Preview"),
+      el("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" } }, [
+        detailRow("Trades Found", trades.length),
+        detailRow("Wins / Losses", `${wins} / ${losses}`),
+        detailRow("Net P&L", fmtMoney(totalPnl)),
+      ]),
+    ]);
+
+    const previewRows = trades.slice(0, 8).map((t) => row([
+      col([
+        el("span", { style: { color: C.text, fontSize: "12.5px", fontWeight: "600" } }, t.pair),
+        el("span", { style: { color: C.subtext, fontSize: "10.5px" } }, `${t.date} \u00b7 ${t.type}`),
+      ], { gap: 2 }),
+      el("span", { style: { color: pnlColor(t.pnl), fontSize: "12.5px", fontWeight: "700" } }, fmtMoney(t.pnl)),
+    ], { justify: "space-between", style: { padding: "8px 0", borderTop: `1px solid ${C.border}` } }));
+
+    const previewCard = Card([
+      sectionTitle("Trades to Import", trades.length > 8 ? pill(`+${trades.length - 8} more`, C.subtext) : null),
+      col(previewRows),
+    ]);
+
+    const confirmBtn = primaryButton(`Import ${trades.length} Trades`, () => {
+      actions.importTrades(trades);
+      state._importStage = "done";
+      rebuild();
+    }, {});
+    const backBtn = ghostButton("Back to Column Matching", () => { state._importStage = "mapping"; rebuild(); }, { bg: C.cardAlt, color: C.subtext });
+
+    return col([summaryCard, previewCard, confirmBtn, backBtn], { gap: 12, style: { paddingBottom: "16px" } });
+  }
+
+  function buildDoneStage() {
+    return col([
+      Card([
+        row([Icons.check(18, C.profit), el("span", { style: { color: C.text, fontSize: "14px", fontWeight: "700" } }, "Import complete")], { gap: 10, style: { marginBottom: "6px" } }),
+        el("span", { style: { color: C.subtext, fontSize: "12.5px" } }, "Your trades have been added to the Journal. You can review, edit, or delete any of them there."),
+      ]),
+      primaryButton("Import Another File", resetImport, {}),
+      ghostButton("Go to Journal", () => actions.navigate("journal"), { bg: C.cardAlt, color: C.accent }),
+    ], { gap: 12, style: { paddingBottom: "16px" } });
+  }
+
+  function buildStage() {
+    if (state._importStage === "mapping" && state._importRows) return buildMappingStage();
+    if (state._importStage === "preview" && state._importRows) return buildPreviewStage();
+    if (state._importStage === "done") return buildDoneStage();
+    return buildUploadStage();
+  }
+
+  rebuild();
+  return container;
 }
 "use strict";
+
+/* ============================================================
+   CALENDAR-BASED GROUPING HELPERS
+   Groups trades by actual calendar date, ISO week, and month
+   (not just "day of week" buckets), so "best/worst" reflects
+   real dates the person can look back at.
+   ============================================================ */
+function isoWeekKey(dateStr) {
+  const d = new Date(dateStr + "T00:00:00");
+  // ISO week calculation
+  const target = new Date(d.valueOf());
+  const dayNr = (d.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNr + 3);
+  const firstThursday = new Date(target.getFullYear(), 0, 4);
+  const diff = target - firstThursday;
+  const week = 1 + Math.round(diff / (7 * 24 * 60 * 60 * 1000));
+  return `${target.getFullYear()}-W${String(week).padStart(2, "0")}`;
+}
+function monthKey(dateStr) {
+  return dateStr.slice(0, 7); // YYYY-MM
+}
+function formatMonthLabel(key) {
+  const [y, m] = key.split("-").map(Number);
+  return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+}
+function formatWeekLabel(key) {
+  return key.replace("-W", " \u00b7 Week ");
+}
+
+function groupTradesBy(trades, keyFn) {
+  const groups = {};
+  trades.forEach((t) => {
+    const key = keyFn(t);
+    if (!groups[key]) groups[key] = { key, trades: [], pnl: 0, wins: 0, losses: 0 };
+    groups[key].trades.push(t);
+    groups[key].pnl += t.pnl;
+    if (t.result === "Win") groups[key].wins++;
+    if (t.result === "Loss") groups[key].losses++;
+  });
+  return Object.values(groups);
+}
+
+function bestAndWorst(groups) {
+  if (!groups.length) return { best: null, worst: null };
+  const sorted = groups.slice().sort((a, b) => b.pnl - a.pnl);
+  return { best: sorted[0], worst: sorted[sorted.length - 1] };
+}
 
 function renderAnalytics(state) {
   const trades = state.trades;
   const stats = computeStats(trades);
 
+  /* ---- Day-of-week performance (existing) ---- */
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri"];
   const dayPerf = days.map((d) => ({ label: d, value: Number(trades.filter((t) => t.day === d).reduce((a, t) => a + t.pnl, 0).toFixed(0)) }));
+  const bestWeekday = dayPerf.reduce((a, b) => (b.value > a.value ? b : a), dayPerf[0]);
+  const worstWeekday = dayPerf.reduce((a, b) => (b.value < a.value ? b : a), dayPerf[0]);
 
+  /* ---- Real calendar date / week / month groupings ---- */
+  const byDate = groupTradesBy(trades, (t) => t.date);
+  const byWeek = groupTradesBy(trades, (t) => isoWeekKey(t.date));
+  const byMonth = groupTradesBy(trades, (t) => monthKey(t.date));
+
+  const bestWorstDate = bestAndWorst(byDate);
+  const bestWorstWeek = bestAndWorst(byWeek);
+  const bestWorstMonth = bestAndWorst(byMonth);
+
+  /* ---- Hour-of-day performance ---- */
   const hourBuckets = {};
   trades.forEach((t) => { hourBuckets[t.hour] = (hourBuckets[t.hour] || 0) + t.pnl; });
   const hourPerf = Object.entries(hourBuckets).map(([h, v]) => ({ label: h + "h", value: Number(v.toFixed(0)) })).sort((a, b) => Number(a.label) - Number(b.label));
+  const bestHour = hourPerf.length ? hourPerf.reduce((a, b) => (b.value > a.value ? b : a), hourPerf[0]) : null;
+  const worstHour = hourPerf.length ? hourPerf.reduce((a, b) => (b.value < a.value ? b : a), hourPerf[0]) : null;
 
+  /* ---- Strategy comparison ---- */
   const stratGroups = {};
   trades.forEach((t) => {
     stratGroups[t.strategy] = stratGroups[t.strategy] || { wins: 0, total: 0, pnl: 0 };
@@ -1797,15 +2181,18 @@ function renderAnalytics(state) {
     if (t.result === "Win") stratGroups[t.strategy].wins++;
   });
   const stratPerf = Object.entries(stratGroups).map(([name, g]) => ({ name, winRate: Math.round((g.wins / g.total) * 100), pnl: Number(g.pnl.toFixed(0)) }));
+  const bestStrat = stratPerf.reduce((a, b) => (b.winRate > a.winRate ? b : a), stratPerf[0] || { name: "\u2014", winRate: 0 });
 
+  /* ---- Mistake analytics ---- */
   const mistakeGroups = {};
-  trades.forEach((t) => t.mistakes.forEach((m) => {
+  trades.forEach((t) => (t.mistakes || []).forEach((m) => {
     mistakeGroups[m] = mistakeGroups[m] || { count: 0, pnl: 0 };
     mistakeGroups[m].count++;
     mistakeGroups[m].pnl += t.pnl;
   }));
   const mistakeImpact = Object.entries(mistakeGroups).map(([name, g]) => ({ name, count: g.count, pnl: Number(g.pnl.toFixed(0)) })).sort((a, b) => b.count - a.count);
 
+  /* ---- Emotion analytics ---- */
   const emoGroups = {};
   trades.forEach((t) => {
     emoGroups[t.emotion] = emoGroups[t.emotion] || { pnl: 0, count: 0 };
@@ -1814,29 +2201,72 @@ function renderAnalytics(state) {
   });
   const emotionPerf = Object.entries(emoGroups).map(([name, g]) => ({ label: name, value: Number((g.pnl / g.count).toFixed(0)) }));
 
-  const bestDay = dayPerf.reduce((a, b) => (b.value > a.value ? b : a), dayPerf[0]);
-  const worstDay = dayPerf.reduce((a, b) => (b.value < a.value ? b : a), dayPerf[0]);
-  const bestStrat = stratPerf.reduce((a, b) => (b.winRate > a.winRate ? b : a), stratPerf[0] || { name: "\u2014", winRate: 0 });
-
+  /* ============================================================
+     RENDER
+     ============================================================ */
   const kpis = grid2([
-    kpiCard("Net Profit", fmtMoney(stats.net), { valueColor: pnlColor(stats.net) }),
-    kpiCard("Win Rate", fmtPct(stats.winRate)),
-    kpiCard("Profit Factor", stats.profitFactor === Infinity ? "\u221e" : stats.profitFactor.toFixed(2)),
+    kpiCard(t("Net Profit"), fmtMoney(stats.net), { valueColor: pnlColor(stats.net) }),
+    kpiCard(t("Win Rate"), fmtPct(stats.winRate)),
+    kpiCard(t("Profit Factor"), stats.profitFactor === Infinity ? "\u221e" : stats.profitFactor.toFixed(2)),
     kpiCard("Recovery Factor", stats.recoveryFactor.toFixed(2)),
     kpiCard("Total Trades", stats.total),
     kpiCard("Win/Loss Ratio", stats.winLossRatio.toFixed(2)),
   ]);
 
-  const dayCard = Card([
-    sectionTitle("Best & Worst Day"),
+  function bestWorstRow(bw, formatLabel) {
+    if (!bw.best) return el("span", { style: { color: C.subtext, fontSize: "12px" } }, "Not enough data yet.");
+    return col([
+      row([
+        col([
+          el("span", { style: { color: C.subtext, fontSize: "10.5px" } }, "Best"),
+          el("span", { style: { color: C.text, fontSize: "13px", fontWeight: "600" } }, formatLabel(bw.best.key)),
+          el("span", { style: { color: C.subtext, fontSize: "10.5px" } }, `${bw.best.trades.length} trade${bw.best.trades.length > 1 ? "s" : ""}`),
+        ], { gap: 2 }),
+        el("span", { style: { color: C.profit, fontSize: "14px", fontWeight: "700" } }, fmtMoney(bw.best.pnl)),
+      ], { justify: "space-between", style: { padding: "8px 0" } }),
+      row([
+        col([
+          el("span", { style: { color: C.subtext, fontSize: "10.5px" } }, "Worst"),
+          el("span", { style: { color: C.text, fontSize: "13px", fontWeight: "600" } }, formatLabel(bw.worst.key)),
+          el("span", { style: { color: C.subtext, fontSize: "10.5px" } }, `${bw.worst.trades.length} trade${bw.worst.trades.length > 1 ? "s" : ""}`),
+        ], { gap: 2 }),
+        el("span", { style: { color: C.loss, fontSize: "14px", fontWeight: "700" } }, fmtMoney(bw.worst.pnl)),
+      ], { justify: "space-between", style: { padding: "8px 0", borderTop: `1px solid ${C.border}` } }),
+    ]);
+  }
+
+  const bestWorstDayCard = Card([
+    sectionTitle("Best & Worst Trading Day"),
+    bestWorstRow(bestWorstDate, (key) => new Date(key + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })),
+  ]);
+
+  const bestWorstWeekCard = Card([
+    sectionTitle("Best & Worst Trading Week"),
+    bestWorstRow(bestWorstWeek, formatWeekLabel),
+  ]);
+
+  const bestWorstMonthCard = Card([
+    sectionTitle("Best & Worst Trading Month"),
+    bestWorstRow(bestWorstMonth, formatMonthLabel),
+  ]);
+
+  const weekdayCard = Card([
+    sectionTitle("Performance by Day of Week"),
     barChart(dayPerf),
     row([
-      el("span", { style: { color: C.subtext, fontSize: "11px" } }, ["Best: ", el("span", { style: { color: C.profit, fontWeight: "700" } }, bestDay.label)]),
-      el("span", { style: { color: C.subtext, fontSize: "11px" } }, ["Worst: ", el("span", { style: { color: C.loss, fontWeight: "700" } }, worstDay.label)]),
+      el("span", { style: { color: C.subtext, fontSize: "11px" } }, ["Best: ", el("span", { style: { color: C.profit, fontWeight: "700" } }, bestWeekday.label)]),
+      el("span", { style: { color: C.subtext, fontSize: "11px" } }, ["Worst: ", el("span", { style: { color: C.loss, fontWeight: "700" } }, worstWeekday.label)]),
     ], { justify: "space-between", style: { marginTop: "4px" } }),
   ]);
 
-  const hourCard = Card([sectionTitle("Performance by Hour"), barChart(hourPerf, { height: 130 })]);
+  const hourCard = Card([
+    sectionTitle("Performance by Hour"),
+    barChart(hourPerf, { height: 130 }),
+    bestHour ? row([
+      el("span", { style: { color: C.subtext, fontSize: "11px" } }, ["Best: ", el("span", { style: { color: C.profit, fontWeight: "700" } }, bestHour.label)]),
+      el("span", { style: { color: C.subtext, fontSize: "11px" } }, ["Worst: ", el("span", { style: { color: C.loss, fontWeight: "700" } }, worstHour.label)]),
+    ], { justify: "space-between", style: { marginTop: "4px" } }) : null,
+  ]);
 
   const stratCard = Card([
     sectionTitle("Strategy Comparison"),
@@ -1864,27 +2294,217 @@ function renderAnalytics(state) {
 
   const emoCard = Card([sectionTitle("Emotion vs Performance"), hBarChart(emotionPerf, { labelWidth: 70 })]);
 
-  return col([kpis, dayCard, hourCard, stratCard, mistakeCard, emoCard], { gap: 16, style: { paddingBottom: "16px" } });
+  return col([
+    kpis,
+    bestWorstDayCard, bestWorstWeekCard, bestWorstMonthCard,
+    weekdayCard, hourCard,
+    stratCard, mistakeCard, emoCard,
+  ], { gap: 16, style: { paddingBottom: "16px" } });
 }
 "use strict";
 
-function renderNews(state) {
+const NEWS_CURRENCIES = ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "NZD", "XAU"];
+const NEWS_IMPACT_LEVELS = ["High", "Medium", "Low"];
+
+function renderNews(state, actions) {
+  if (state._newsFilterImpact === undefined) state._newsFilterImpact = "All";
+  if (state._newsFilterCurrency === undefined) state._newsFilterCurrency = "All";
+  if (state._newsFilterRange === undefined) state._newsFilterRange = "All"; // All, ThisWeek, ThisMonth
+  if (state._newsExpanded === undefined) state._newsExpanded = null;
+
   const impactColor = { High: C.loss, Medium: C.warn, Low: C.subtext };
-  const banner = Card([row([Icons.globe(15, C.accent), el("span", { style: { color: C.subtext, fontSize: "12px" } }, "Calendar will sync automatically from Forex Factory / Investing.com")], { gap: 10 })]);
 
-  const eventCards = state.newsEvents.map((ev) => Card([
-    row([
+  /* ---- Date range filter helpers ---- */
+  function inRange(dateStr, range) {
+    if (range === "All") return true;
+    const d = new Date(dateStr + "T00:00:00");
+    const now = new Date();
+    if (range === "ThisWeek") {
+      const day = (now.getDay() + 6) % 7; // Monday = 0
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - day);
+      monday.setHours(0, 0, 0, 0);
+      const nextMonday = new Date(monday);
+      nextMonday.setDate(monday.getDate() + 7);
+      return d >= monday && d < nextMonday;
+    }
+    if (range === "ThisMonth") {
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    }
+    return true;
+  }
+
+  /* ---- Add / Edit event dialog ---- */
+  function openEventDialog(existingEvent) {
+    const form = existingEvent
+      ? { date: existingEvent.date, currency: existingEvent.currency, event: existingEvent.event, impact: existingEvent.impact, forecast: existingEvent.forecast, previous: existingEvent.previous, actual: existingEvent.actual }
+      : { date: new Date().toISOString().slice(0, 10), currency: NEWS_CURRENCIES[0], event: "", impact: "Medium", forecast: "", previous: "", actual: "" };
+    let handle;
+    const errorLabel = el("span", { style: { color: C.loss, fontSize: "12px", display: "none" } });
+
+    const dateInput = textInput({ type: "date", value: form.date, onchange: (e) => (form.date = e.target.value) });
+    const currencySelect = el("select", { style: { background: C.card, border: `1px solid ${C.border}`, borderRadius: "10px", padding: "10px 12px", color: C.text, fontSize: "13.5px", width: "100%" } },
+      NEWS_CURRENCIES.map((c) => el("option", { value: c, selected: c === form.currency }, c)));
+    currencySelect.addEventListener("change", (e) => (form.currency = e.target.value));
+    const eventInput = textInput({ value: form.event, placeholder: "e.g. Non-Farm Payrolls", oninput: (e) => (form.event = e.target.value) });
+    const impactRowWrap = el("div", { style: { display: "flex", gap: "8px" } });
+    function rebuildImpactRow() {
+      clear(impactRowWrap);
+      NEWS_IMPACT_LEVELS.forEach((lvl) => {
+        const active = form.impact === lvl;
+        const btn = el("button", { style: { flex: "1", padding: "8px", borderRadius: "8px", fontSize: "12.5px", fontWeight: "600", background: active ? impactColor[lvl] : C.card, color: active ? "#fff" : C.subtext, border: "none", cursor: "pointer" } }, lvl);
+        btn.addEventListener("click", () => { form.impact = lvl; rebuildImpactRow(); });
+        impactRowWrap.appendChild(btn);
+      });
+    }
+    rebuildImpactRow();
+
+    const forecastInput = textInput({ value: form.forecast, placeholder: "e.g. 180K", oninput: (e) => (form.forecast = e.target.value) });
+    const previousInput = textInput({ value: form.previous, placeholder: "e.g. 165K", oninput: (e) => (form.previous = e.target.value) });
+    const actualInput = textInput({ value: form.actual, placeholder: "e.g. 190K (leave blank if not released yet)", oninput: (e) => (form.actual = e.target.value) });
+
+    const bodyEl = col([
+      field("Date", dateInput),
+      field("Currency", currencySelect),
+      field("Event Name", eventInput),
+      field("Impact Level", impactRowWrap),
+      el("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" } }, [
+        field("Forecast", forecastInput),
+        field("Previous", previousInput),
+        field("Actual", actualInput),
+      ]),
+      errorLabel,
+    ], { gap: 12, style: { padding: "18px 20px" } });
+
+    function submit() {
+      if (!form.event.trim()) { errorLabel.textContent = "Event name can't be empty."; errorLabel.style.display = "block"; return; }
+      const cleaned = {
+        date: form.date, currency: form.currency, event: form.event.trim(), impact: form.impact,
+        forecast: form.forecast.trim() || "\u2014", previous: form.previous.trim() || "\u2014", actual: form.actual.trim() || "\u2014",
+      };
+      if (existingEvent) {
+        Object.assign(existingEvent, cleaned);
+      } else {
+        state.newsEvents.unshift({ id: uid("n"), ...cleaned, media: [] });
+      }
+      handle.close();
+      actions.rerender();
+    }
+
+    const footer = row([
+      ghostButton("Cancel", () => handle.close(), { bg: C.cardAlt, color: C.subtext }),
+      primaryButton(existingEvent ? "Save" : "Add Event", submit, {}),
+    ], { gap: 10, style: { padding: "16px 20px", borderTop: `1px solid ${C.border}` } });
+
+    handle = openOverlay([dialogHeader(existingEvent ? "Edit News Event" : "New News Event", () => handle.close()), bodyEl, footer], { center: true, sheetStyle: { maxHeight: "88vh" } });
+  }
+
+  function deleteEvent(id) {
+    confirmDialog({
+      title: "Delete Event", message: "Delete this news event? This can't be undone.",
+      confirmText: "Delete", danger: true,
+      onConfirm: () => { state.newsEvents = state.newsEvents.filter((e) => e.id !== id); actions.rerender(); },
+    });
+  }
+
+  /* ---- Filters UI ---- */
+  const impactChips = row([
+    chip("All Impact", state._newsFilterImpact === "All", () => { state._newsFilterImpact = "All"; actions.rerender(); }),
+    ...NEWS_IMPACT_LEVELS.map((lvl) => chip(lvl, state._newsFilterImpact === lvl, () => { state._newsFilterImpact = lvl; actions.rerender(); })),
+  ], { gap: 8, style: { overflowX: "auto", paddingBottom: "4px" } });
+
+  const currenciesInUse = [...new Set(state.newsEvents.map((e) => e.currency))];
+  const currencyChips = row([
+    chip("All Currencies", state._newsFilterCurrency === "All", () => { state._newsFilterCurrency = "All"; actions.rerender(); }),
+    ...NEWS_CURRENCIES.filter((c) => currenciesInUse.includes(c) || true).map((c) => chip(c, state._newsFilterCurrency === c, () => { state._newsFilterCurrency = c; actions.rerender(); })),
+  ], { gap: 8, style: { overflowX: "auto", paddingBottom: "4px" } });
+
+  const rangeChips = row([
+    chip("All Dates", state._newsFilterRange === "All", () => { state._newsFilterRange = "All"; actions.rerender(); }),
+    chip("This Week", state._newsFilterRange === "ThisWeek", () => { state._newsFilterRange = "ThisWeek"; actions.rerender(); }),
+    chip("This Month", state._newsFilterRange === "ThisMonth", () => { state._newsFilterRange = "ThisMonth"; actions.rerender(); }),
+  ], { gap: 8, style: { overflowX: "auto", paddingBottom: "4px" } });
+
+  const addBtn = ghostButton("Add News Event", () => openEventDialog(null), { icon: Icons.plus(15, C.accent) });
+
+  /* ---- Filtered + sorted list ---- */
+  const filtered = state.newsEvents
+    .filter((ev) => (state._newsFilterImpact === "All" || ev.impact === state._newsFilterImpact))
+    .filter((ev) => (state._newsFilterCurrency === "All" || ev.currency === state._newsFilterCurrency))
+    .filter((ev) => inRange(ev.date, state._newsFilterRange))
+    .slice()
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
+
+  function eventCard(ev) {
+    const isOpen = state._newsExpanded === ev.id;
+    const media = ev.media || [];
+
+    const headerRow = row([
       row([pill(ev.currency, C.accent, "rgba(56,189,248,0.14)"), el("span", { style: { color: C.text, fontSize: "13px", fontWeight: "600" } }, ev.event)], { gap: 8 }),
-      pill(ev.impact, impactColor[ev.impact], impactColor[ev.impact] + "22"),
-    ], { justify: "space-between", style: { marginBottom: "8px" } }),
-    row([Icons.calendar(11, C.subtext), el("span", { style: { color: C.subtext, fontSize: "11px" } }, ev.date)], { gap: 6, style: { marginBottom: "10px" } }),
-    el("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginBottom: "10px" } }, [
-      detailRow("Forecast", ev.forecast), detailRow("Previous", ev.previous), detailRow("Actual", ev.actual),
-    ]),
-    ghostButton("Attach chart reaction screenshot", () => {}, { icon: Icons.image(13, C.subtext), style: { border: `1px dashed ${C.border}`, background: "none" } }),
-  ]));
+      row([
+        pill(ev.impact, impactColor[ev.impact], impactColor[ev.impact] + "22"),
+        el("button", { onClick: (e) => { e.stopPropagation(); openEventDialog(ev); }, style: { background: "none", border: "none", cursor: "pointer", display: "flex", padding: "2px" } }, [Icons.file(13, C.subtext)]),
+        el("button", { onClick: (e) => { e.stopPropagation(); deleteEvent(ev.id); }, style: { background: "none", border: "none", cursor: "pointer", display: "flex", padding: "2px" } }, [Icons.trash(13, C.loss)]),
+      ], { gap: 6 }),
+    ], { justify: "space-between", style: { marginBottom: "8px", cursor: "pointer" } });
+    headerRow.addEventListener("click", () => { state._newsExpanded = isOpen ? null : ev.id; actions.rerender(); });
 
-  return col([banner, ...eventCards], { gap: 12, style: { paddingBottom: "16px" } });
+    const children = [
+      headerRow,
+      row([Icons.calendar(11, C.subtext), el("span", { style: { color: C.subtext, fontSize: "11px" } }, ev.date)], { gap: 6, style: { marginBottom: "10px" } }),
+      el("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginBottom: "10px" } }, [
+        detailRow("Forecast", ev.forecast), detailRow("Previous", ev.previous), detailRow("Actual", ev.actual),
+      ]),
+    ];
+
+    if (isOpen) {
+      const mediaSection = el("div", {});
+      mediaSection.appendChild(row([Icons.image(13, C.subtext), el("span", { style: { color: C.subtext, fontSize: "11px" } }, media.length ? `${media.length} screenshot${media.length > 1 ? "s" : ""}` : "No chart screenshots attached")], { gap: 6, style: { marginBottom: "8px" } }));
+
+      if (media.length) {
+        const grid = el("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "6px", marginBottom: "8px" } });
+        media.forEach((m, idx) => {
+          const thumb = el("img", { src: m.data, style: { width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: "8px", display: "block", cursor: "pointer" } });
+          thumb.addEventListener("click", () => openMediaLightbox(media, idx));
+          const removeBtn = el("button", {
+            onClick: (ev2) => { ev2.stopPropagation(); ev.media = ev.media.filter((x) => x.id !== m.id); actions.rerender(); },
+            style: { position: "absolute", top: "2px", right: "2px", width: "18px", height: "18px", borderRadius: "999px", background: "rgba(0,0,0,0.6)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
+          }, [Icons.x(11, "#fff")]);
+          grid.appendChild(el("div", { style: { position: "relative" } }, [thumb, removeBtn]));
+        });
+        mediaSection.appendChild(grid);
+      }
+
+      const mediaInput = el("input", { type: "file", accept: "image/*", multiple: true, style: { display: "none" } });
+      mediaInput.addEventListener("change", async (e) => {
+        const files = Array.from(e.target.files || []);
+        e.target.value = "";
+        for (const file of files) {
+          const proceed = await confirmLargeFileIfNeeded(file);
+          if (!proceed) continue;
+          const dataUrl = await readFileAsDataUrl(file);
+          if (!ev.media) ev.media = [];
+          ev.media.push({ id: uid("m"), type: file.type, name: file.name, data: dataUrl });
+        }
+        actions.rerender();
+      });
+      mediaSection.appendChild(ghostButton("Attach Chart Screenshot", () => mediaInput.click(), { icon: Icons.image(13, C.subtext), style: { border: `1px dashed ${C.border}`, background: "none" } }));
+      mediaSection.appendChild(mediaInput);
+      children.push(mediaSection);
+    }
+
+    return Card(children);
+  }
+
+  const list = filtered.length
+    ? col(filtered.map(eventCard), { gap: 10 })
+    : emptyState(state.newsEvents.length ? "No events match these filters." : "No news events yet. Add your first one above.");
+
+  const noteCard = Card([
+    row([Icons.globe(15, C.accent), el("span", { style: { color: C.subtext, fontSize: "12px" } }, "Events are entered manually \u2014 add the ones relevant to your trading week.")], { gap: 10 }),
+  ]);
+
+  return col([noteCard, addBtn, impactChips, currencyChips, rangeChips, list], { gap: 12, style: { paddingBottom: "16px" } });
 }
 "use strict";
 
@@ -2319,7 +2939,7 @@ function createApp(rootEl) {
       case "journal": return renderJournal(state, actions);
       case "import": return renderImport(state, actions);
       case "analytics": return renderAnalytics(state);
-      case "news": return renderNews(state);
+      case "news": return renderNews(state, actions);
       case "education": return renderEducation(state, actions);
       case "settings": return renderSettings(state, actions);
       default: return el("div", {}, "Unknown page");
