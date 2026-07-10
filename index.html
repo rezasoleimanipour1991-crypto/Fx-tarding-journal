@@ -1,74 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-<meta name="theme-color" content="#0F172A" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="FX Journal" />
-<meta name="description" content="Mobile-first forex trading journal. 100% offline, no external dependencies. Your data stays on this device." />
-<link rel="manifest" href="/manifest.json" />
-<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
-<link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
-<link rel="apple-touch-icon" href="/icons/icon-192.png" />
-<title>FX Discipline — Trading Journal</title>
-
-<style>
-  html, body { margin: 0; padding: 0; background: #0F172A; overscroll-behavior-y: none; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans Arabic", "Tahoma", sans-serif;
-    -webkit-tap-highlight-color: transparent;
-  }
-  html[lang="fa"] body, html[dir="rtl"] body {
-    font-family: "Tahoma", "Noto Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  }
-  #root { min-height: 100vh; }
-  * { box-sizing: border-box; }
-  ::-webkit-scrollbar { display: none; }
-  input::placeholder, textarea::placeholder { color: #94A3B8; opacity: 0.7; }
-  select { appearance: none; -webkit-appearance: none; }
-  input[type="range"] { accent-color: #38BDF8; width: 100%; }
-  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }
-  button { font-family: inherit; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  #boot-error {
-    display: none; max-width: 420px; background: #1E293B; border: 1px solid #EF4444;
-    border-radius: 12px; padding: 16px; color: #E5E7EB; font-size: 13px; line-height: 1.6;
-    text-align: left; white-space: pre-wrap; word-break: break-word; margin-top: 14px;
-  }
-  #boot-error.show { display: block; }
-  #boot-error b { color: #EF4444; }
-</style>
-
-<script>
-  /* Boot diagnostics: if a script error happens before the app mounts, show it instead of a blank screen. */
-  window.__bootOk = false;
-  window.addEventListener("error", function (e) {
-    showBootError("Script error: " + (e.message || "unknown error") + (e.lineno ? " (line " + e.lineno + ")" : ""));
-  });
-  function showBootError(msg) {
-    if (window.__bootOk) return;
-    var el2 = document.getElementById("boot-error");
-    if (el2) { el2.classList.add("show"); el2.innerHTML = "<b>Details:</b>\n" + msg; }
-  }
-
-  /* Register the real service worker file for offline support and PWA store-readiness.
-     This is safe to fail silently — the app works fully without it.
-     We also actively call update() on every load so a fixed/updated
-     service worker takes over as soon as possible, rather than waiting
-     for the browser's normal (much slower) background update check. */
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("/sw.js").then(function (reg) {
-        reg.update().catch(function () {});
-      }).catch(function (err) {
-        console.warn("Service worker registration failed (app still works fully without it):", err);
-      });
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0F172A" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="FX Journal" />
+  <meta name="description" content="Mobile-first forex trading journal. 100% offline, no external dependencies. Your data stays on this device." />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <title>FX Discipline — Trading Journal</title>
+  <style>
+    html, body { margin: 0; padding: 0; background: #0F172A; overscroll-behavior-y: none; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans Arabic", "Tahoma", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html[lang="fa"] body, html[dir="rtl"] body {
+      font-family: "Tahoma", "Noto Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    #root { min-height: 100vh; display: flex; flex-direction: column; }
+    @media (min-width: 768px) {
+      #root { flex-direction: row; }
+    }
+    * { box-sizing: border-box; }
+    ::-webkit-scrollbar { display: none; }
+    input::placeholder, textarea::placeholder { color: #94A3B8; opacity: 0.7; }
+    select { appearance: none; -webkit-appearance: none; }
+    input[type="range"] { accent-color: #38BDF8; width: 100%; }
+    input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }
+    button { font-family: inherit; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #boot-error {
+      display: none; max-width: 420px; background: #1E293B; border: 1px solid #EF4444;
+      border-radius: 12px; padding: 16px; color: #E5E7EB; font-size: 13px; line-height: 1.6;
+      text-align: left; white-space: pre-wrap; word-break: break-word; margin-top: 14px;
+    }
+    #boot-error.show { display: block; }
+    #boot-error b { color: #EF4444; }
+  </style>
+  <script>
+    window.__bootOk = false;
+    window.addEventListener("error", function (e) {
+      showBootError("Script error: " + (e.message || "unknown error") + (e.lineno ? " (line " + e.lineno + ")" : ""));
     });
-  }
-</script>
+    function showBootError(msg) {
+      if (window.__bootOk) return;
+      var el2 = document.getElementById("boot-error");
+      if (el2) { el2.classList.add("show"); el2.innerHTML = "<b>Details:</b>\n" + msg; }
+    }
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("/sw.js").then(function (reg) {
+          reg.update().catch(function () {});
+        }).catch(function (err) {
+          console.warn("Service worker registration failed (app still works fully without it):", err);
+        });
+      });
+    }
+  </script>
 </head>
 <body>
 <div id="root">
@@ -78,21 +71,16 @@
     <div id="boot-error"></div>
   </div>
 </div>
-
 <script>
 "use strict";
-
 /* ============================================================
-   DESIGN TOKENS — mutated in place (not reassigned) so every
-   already-captured reference to `C` picks up new theme values
-   on the next render.
-   ============================================================ */
+  DESIGN TOKENS
+============================================================ */
 const C = {
   bg: "#0F172A", card: "#1E293B", cardAlt: "#243349", border: "#2C3E59",
   accent: "#38BDF8", profit: "#22C55E", loss: "#EF4444",
   text: "#E5E7EB", subtext: "#94A3B8", warn: "#F59E0B",
 };
-
 const THEMES = {
   Dark: {
     bg: "#0F172A", card: "#1E293B", cardAlt: "#243349", border: "#2C3E59",
@@ -105,7 +93,6 @@ const THEMES = {
     text: "#0F172A", subtext: "#64748B", warn: "#D97706",
   },
 };
-
 function applyTheme(themeName) {
   const t = THEMES[themeName] || THEMES.Dark;
   Object.keys(t).forEach((k) => { C[k] = t[k]; });
@@ -113,12 +100,11 @@ function applyTheme(themeName) {
 }
 
 /* ============================================================
-   PERSISTENT STORAGE (IndexedDB) — fully offline, no network.
-   ============================================================ */
+  PERSISTENT STORAGE (IndexedDB)
+============================================================ */
 const DB_NAME = "fx_discipline_db";
 const DB_VERSION = 1;
 const STORE_NAME = "appState";
-
 function openDB() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
@@ -152,9 +138,7 @@ async function dbSet(key, value) {
     });
   } catch (e) { console.error("dbSet failed", e); return false; }
 }
-
 const KEYS = { trades: "trades", strategies: "strategies", symbols: "symbols", eduNotes: "eduNotes", eduFiles: "eduFiles", newsEvents: "newsEvents", settings: "settings", accounts: "accounts", initialized: "initialized" };
-
 async function loadAppState() {
   const initialized = await dbGet(KEYS.initialized);
   if (!initialized) return null;
@@ -199,8 +183,8 @@ function importFromFile(file) {
 }
 
 /* ============================================================
-   TINY DOM HELPERS (no framework)
-   ============================================================ */
+  TINY DOM HELPERS
+============================================================ */
 function el(tag, attrs, children) {
   const node = document.createElement(tag);
   attrs = attrs || {};
@@ -237,20 +221,13 @@ function svgEl(tag, attrs, children) {
 function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
 
 /* ============================================================
-   UTILITIES
-   ============================================================ */
+  UTILITIES
+============================================================ */
 const fmtMoney = (n) => `${n < 0 ? "\u2212" : ""}$${Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fmtPct = (n) => `${n.toFixed(1)}%`;
 const pnlColor = (n) => (n > 0 ? C.profit : n < 0 ? C.loss : C.subtext);
 const uid = (p) => `${p || "id"}_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
-
 const SESSION_OPTIONS = ["Asia", "London", "New York", "London/New York Overlap"];
-
-/* Suggests a trading session from a 24h local time string "HH:MM" or "HH:MM:SS".
-   Uses commonly-referenced approximate session windows (local browser time):
-   Asia 00:00-08:00, London 08:00-13:00, Overlap 13:00-16:00, New York 16:00-21:00.
-   This is a starting suggestion only — always editable by the user since real
-   session boundaries depend on the user's timezone and DST. */
 function suggestSession(timeStr) {
   if (!timeStr) return SESSION_OPTIONS[0];
   const hour = Number(timeStr.split(":")[0]);
@@ -261,7 +238,6 @@ function suggestSession(timeStr) {
   if (hour >= 16 && hour < 21) return "New York";
   return "Asia";
 }
-
 function computeStats(trades) {
   const wins = trades.filter((t) => t.result === "Win");
   const losses = trades.filter((t) => t.result === "Loss");
@@ -283,31 +259,22 @@ function computeStats(trades) {
     recoveryFactor: maxDD ? net / maxDD : 0,
   };
 }
-"use strict";
 
 /* ============================================================
-   TRANSLATION SYSTEM
-   Usage: t("dashboard") -> "Dashboard" or "داشبورد" depending on
-   the current language. Falls back to the key itself if missing,
-   so untranslated strings still render (in English) rather than
-   breaking.
-   ============================================================ */
+  TRANSLATION SYSTEM
+============================================================ */
 let CURRENT_LANG = "English";
-
 function setLanguage(lang) {
   CURRENT_LANG = lang;
   document.documentElement.dir = lang === "Persian" ? "rtl" : "ltr";
   document.documentElement.lang = lang === "Persian" ? "fa" : "en";
 }
-
 function t(key) {
   const dict = TRANSLATIONS[key];
   if (!dict) return key;
   return dict[CURRENT_LANG] || dict.English || key;
 }
-
 const TRANSLATIONS = {
-  // Nav
   "Dashboard": { Persian: "داشبورد" },
   "Checklist": { Persian: "چک‌لیست" },
   "Journal": { Persian: "ژورنال" },
@@ -316,13 +283,9 @@ const TRANSLATIONS = {
   "News": { Persian: "اخبار" },
   "Education": { Persian: "آموزش" },
   "Settings": { Persian: "تنظیمات" },
-
-  // App shell
   "FX Discipline": { Persian: "انضباط معاملاتی" },
   "Saved on device": { Persian: "ذخیره روی دستگاه" },
-  "Loading your data…": { Persian: "در حال بارگذاری اطلاعات…" },
-
-  // Dashboard
+  "Loading your data …": { Persian: "در حال بارگذاری اطلاعات …" },
   "Net Profit": { Persian: "سود خالص" },
   "Win Rate": { Persian: "درصد برد" },
   "Profit Factor": { Persian: "ضریب سود" },
@@ -331,8 +294,6 @@ const TRANSLATIONS = {
   "Trade Distribution": { Persian: "توزیع معاملات" },
   "By Session": { Persian: "بر اساس سشن" },
   "Recent Trades": { Persian: "معاملات اخیر" },
-
-  // Checklist
   "No strategy yet.": { Persian: "هنوز استراتژی‌ای ثبت نشده." },
   "Create Strategy": { Persian: "ساخت استراتژی" },
   "Checklist Progress": { Persian: "پیشرفت چک‌لیست" },
@@ -340,8 +301,6 @@ const TRANSLATIONS = {
   "Open Trade Journal": { Persian: "باز کردن ژورنال معامله" },
   "Complete all tasks": { Persian: "تکمیل همه‌ی وظایف" },
   "No stages yet. Add your first stage below.": { Persian: "هنوز مرحله‌ای اضافه نشده. اولین مرحله رو پایین اضافه کن." },
-
-  // Settings
   "Language": { Persian: "زبان" },
   "Theme": { Persian: "پوسته" },
   "Dark": { Persian: "تیره" },
@@ -356,9 +315,7 @@ const TRANSLATIONS = {
   "Add Trading Account": { Persian: "افزودن حساب معاملاتی" },
   "No trading accounts yet.": { Persian: "هنوز حساب معاملاتی‌ای ثبت نشده." },
   "Trading Symbols": { Persian: "نمادهای معاملاتی" },
-
-  // Journal
-  "Search pair...": { Persian: "جستجوی نماد..." },
+  "Search pair ...": { Persian: "جستجوی نماد ..." },
   "All Pairs": { Persian: "همه نمادها" },
   "All Strategies": { Persian: "همه استراتژی‌ها" },
   "All Accounts": { Persian: "همه حساب‌ها" },
@@ -368,22 +325,18 @@ const TRANSLATIONS = {
   "Edit Trade": { Persian: "ویرایش معامله" },
   "Save Trade": { Persian: "ذخیره معامله" },
   "Save Changes": { Persian: "ذخیره تغییرات" },
-
-  // Common actions
   "Cancel": { Persian: "لغو" },
   "Save": { Persian: "ذخیره" },
   "Delete": { Persian: "حذف" },
   "Confirm": { Persian: "تایید" },
 };
-"use strict";
 
 /* ============================================================
-   SEED / MOCK DATA
-   ============================================================ */
+  SEED / MOCK DATA
+============================================================ */
 const PAIRS = ["XAUUSD", "EURUSD", "GBPUSD", "BTCUSD", "USDJPY"];
 const MISTAKES = ["Early Entry", "No Confirmation", "Overtrading", "Poor Risk Management", "Ignored Strategy"];
 const EMOTIONS = ["Calm", "Confident", "Anxious", "FOMO", "Frustrated", "Neutral"];
-
 function genTrades() {
   const trades = [];
   let equity = 10000;
@@ -396,8 +349,8 @@ function genTrades() {
     const isBE = !isWin && Math.random() > 0.85;
     const result = isBE ? "Breakeven" : isWin ? "Win" : "Loss";
     const pnl = result === "Breakeven" ? 0 : result === "Win"
-      ? +(Math.random() * 380 + 40).toFixed(2)
-      : -(Math.random() * 260 + 30).toFixed(2);
+        ? +(Math.random() * 380 + 40).toFixed(2)
+        : -(Math.random() * 260 + 30).toFixed(2);
     equity += Number(pnl);
     const hour = Math.floor(Math.random() * 24);
     const minute = Math.floor(Math.random() * 60);
@@ -427,7 +380,6 @@ function genTrades() {
   }
   return trades;
 }
-
 const DEFAULT_STRATEGIES = [
   {
     id: "s1", name: "Breakout Momentum",
@@ -463,7 +415,6 @@ const DEFAULT_STRATEGIES = [
     ],
   },
 ];
-
 const NEWS_EVENTS = [
   { id: "n1", date: "2026-07-01", currency: "USD", event: "Non-Farm Payrolls", impact: "High", forecast: "180K", previous: "165K", actual: "\u2014", media: [] },
   { id: "n2", date: "2026-07-01", currency: "EUR", event: "ECB Rate Decision", impact: "High", forecast: "3.75%", previous: "3.75%", actual: "3.75%", media: [] },
@@ -471,25 +422,20 @@ const NEWS_EVENTS = [
   { id: "n4", date: "2026-07-02", currency: "USD", event: "ISM Manufacturing PMI", impact: "Medium", forecast: "49.5", previous: "48.7", actual: "\u2014", media: [] },
   { id: "n5", date: "2026-07-03", currency: "JPY", event: "BoJ Policy Statement", impact: "High", forecast: "\u2014", previous: "\u2014", actual: "\u2014", media: [] },
 ];
-
 const EDU_NOTES = [
   { id: "e1", category: "Golden Rules", title: "Never risk more than 2% per trade", body: "Position size is calculated before entry, not adjusted after." },
   { id: "e2", category: "Trading Psychology", title: "FOMO checklist", body: "If I feel rushed to enter, that is the signal to wait for the next setup." },
   { id: "e3", category: "Common Mistakes", title: "Moving stop loss", body: "Widening a stop loss after entry is a rule violation, not a strategy adjustment." },
 ];
-
 const EDU_FILES = [];
-
 const EDU_CATEGORIES = ["Golden Rules", "Strategy Notes", "Trading Psychology", "Common Mistakes", "Market Insights"];
-
 const DEFAULT_ACCOUNTS = [
   { id: "acc1", name: "Main Account", number: "1024578", broker: "" },
 ];
-"use strict";
 
 /* ============================================================
-   ICONS — returns raw SVG DOM nodes (lucide-style paths)
-   ============================================================ */
+  ICONS
+============================================================ */
 function Icon(paths, size, color) {
   size = size || 18;
   const svg = svgEl("svg", {
@@ -504,7 +450,6 @@ function Poly(points) { return svgEl("polyline", { points }); }
 function Rect(x, y, w, h, rx) { return svgEl("rect", { x, y, width: w, height: h, rx: rx || 0 }); }
 function Circ(cx, cy, r) { return svgEl("circle", { cx, cy, r }); }
 function Ln(x1, y1, x2, y2) { return svgEl("line", { x1, y1, x2, y2 }); }
-
 const Icons = {
   dashboard: (s, c) => Icon([Rect(3,3,7,9,1), Rect(14,3,7,5,1), Rect(14,12,7,9,1), Rect(3,16,7,5,1)], s, c),
   checklist: (s, c) => Icon([Poly("9 11 12 14 22 4"), P("M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11")], s, c),
@@ -538,19 +483,14 @@ const Icons = {
   alert: (s, c) => Icon([P("m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"), Ln(12,9,12,13), Ln(12,17,12.01,17)], s, c),
   check: (s, c) => Icon([Poly("20 6 9 17 4 12")], s, c),
 };
-"use strict";
 
 /* ============================================================
-   MINI CHART LIBRARY — plain SVG, no external chart library.
-   All functions return a DOM node ready to insert.
-   ============================================================ */
-
+  MINI CHART LIBRARY
+============================================================ */
 function wrapChart(svg, height) {
   const wrap = el("div", { style: { width: "100%", height: height + "px" } }, [svg]);
   return wrap;
 }
-
-/* Area/line chart (equity curve) */
 function areaChart(values, opts) {
   opts = opts || {};
   const w = 320, h = opts.height || 160, pad = 6;
@@ -564,7 +504,6 @@ function areaChart(values, opts) {
   });
   const linePath = points.map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(" ");
   const areaPath = `${linePath} L${points[points.length - 1][0]},${h - pad} L${points[0][0]},${h - pad} Z`;
-
   const gradId = "grad" + Math.floor(Math.random() * 1e6);
   const defs = svgEl("defs", {}, [
     svgEl("linearGradient", { id: gradId, x1: "0", y1: "0", x2: "0", y2: "1" }, [
@@ -572,19 +511,15 @@ function areaChart(values, opts) {
       svgEl("stop", { offset: "100%", "stop-color": C.accent, "stop-opacity": "0" }),
     ]),
   ]);
-
   const svg = svgEl("svg", { viewBox: `0 0 ${w} ${h}`, width: "100%", height: h, preserveAspectRatio: "none" }, [
     defs,
     svgEl("path", { d: areaPath, fill: `url(#${gradId})`, stroke: "none" }),
     svgEl("path", { d: linePath, fill: "none", stroke: C.accent, "stroke-width": "2", "stroke-linejoin": "round" }),
   ]);
-
-  // Hover/touch tooltip
   const tooltip = el("div", {
     style: { position: "absolute", display: "none", background: C.cardAlt, border: `1px solid ${C.border}`, borderRadius: "8px", padding: "6px 10px", fontSize: "12px", color: C.text, pointerEvents: "none", whiteSpace: "nowrap", zIndex: "10" },
   });
   const container = el("div", { style: { position: "relative", width: "100%" } }, [svg, tooltip]);
-
   function handleMove(clientX) {
     const rect = svg.getBoundingClientRect();
     const relX = ((clientX - rect.left) / rect.width) * w;
@@ -601,11 +536,8 @@ function areaChart(values, opts) {
   svg.addEventListener("touchstart", (e) => handleMove(e.touches[0].clientX), { passive: true });
   svg.addEventListener("touchmove", (e) => handleMove(e.touches[0].clientX), { passive: true });
   svg.addEventListener("touchend", () => { tooltip.style.display = "none"; });
-
   return container;
 }
-
-/* Vertical bar chart. data: [{label, value, color?}] */
 function barChart(data, opts) {
   opts = opts || {};
   const w = 320, h = opts.height || 150, pad = 8, gap = 6;
@@ -615,7 +547,6 @@ function barChart(data, opts) {
   const range = (max - min) || 1;
   const zeroY = pad + (1 - (0 - min) / range) * (h - pad * 2 - 18);
   const barW = (w - pad * 2 - gap * (data.length - 1)) / data.length;
-
   const bars = data.map((d, i) => {
     const x = pad + i * (barW + gap);
     const valY = pad + (1 - (d.value - min) / range) * (h - pad * 2 - 18);
@@ -624,17 +555,13 @@ function barChart(data, opts) {
     const color = d.color || pnlColor(d.value);
     return svgEl("rect", { x, y: barY, width: barW, height: barH, rx: 3, fill: color });
   });
-
   const labels = data.map((d, i) => {
     const x = pad + i * (barW + gap) + barW / 2;
-    return svgEl("text", { x, y: h - 4, "text-anchor": "middle", "font-size": "9", fill: C.subtext, "font-family": "inherit" }, []).also((t) => (t.textContent = d.label));
+    return svgEl("text", { x, y: h - 4, "text-anchor": "middle", "font-size": "9", fill: C.subtext, "font-family": "inherit" }).also((t) => (t.textContent = d.label));
   });
-
   const svg = svgEl("svg", { viewBox: `0 0 ${w} ${h}`, width: "100%", height: h, preserveAspectRatio: "none" }, [...bars, ...(opts.showLabels === false ? [] : labels)]);
   return svg;
 }
-
-/* Horizontal bar chart. data: [{label, value, color?}] */
 function hBarChart(data, opts) {
   opts = opts || {};
   const w = 320, rowH = opts.rowHeight || 26, h = data.length * rowH + 8;
@@ -642,7 +569,6 @@ function hBarChart(data, opts) {
   const maxAbs = Math.max(...values.map(Math.abs), 1);
   const labelW = opts.labelWidth || 66;
   const chartW = w - labelW - 12;
-
   const rows = [];
   data.forEach((d, i) => {
     const y = i * rowH + 4;
@@ -654,11 +580,8 @@ function hBarChart(data, opts) {
     rows.push(svgEl("text", { x: labelW - 8, y: y + rowH / 2 - 8, "text-anchor": "end", "font-size": "10.5", fill: C.subtext }).also((t) => (t.textContent = d.label)));
     rows.push(svgEl("rect", { x, y: y, width: Math.max(barW, 1), height: rowH - 10, rx: 3, fill: color }));
   });
-
   return svgEl("svg", { viewBox: `0 0 ${w} ${h}`, width: "100%", height: h, preserveAspectRatio: "none" }, rows);
 }
-
-/* Donut/pie chart. data: [{label, value, color}] */
 function donutChart(data, opts) {
   opts = opts || {};
   const size = opts.size || 130, cx = size / 2, cy = size / 2, rOuter = size / 2 - 4, rInner = rOuter * 0.6;
@@ -681,17 +604,11 @@ function donutChart(data, opts) {
   });
   return svgEl("svg", { viewBox: `0 0 ${size} ${size}`, width: size, height: size }, paths);
 }
-
-// helper to allow chaining `.also()` on svg elements for setting textContent inline
-SVGElement.prototype.also = function (fn) { fn(this); return this; };
-"use strict";
+SVGElement.prototype.also = function(fn) { fn(this); return this; };
 
 /* ============================================================
-   CSV PARSER — minimal, dependency-free, handles quoted fields
-   containing commas, escaped quotes (""), and CRLF/LF newlines.
-   Returns an array of row-arrays (strings). First row is
-   typically the header; caller decides how to use it.
-   ============================================================ */
+  CSV PARSER
+============================================================ */
 function parseCSV(text) {
   const rows = [];
   let row = [];
@@ -699,10 +616,8 @@ function parseCSV(text) {
   let inQuotes = false;
   let i = 0;
   const len = text.length;
-
   while (i < len) {
     const char = text[i];
-
     if (inQuotes) {
       if (char === '"') {
         if (text[i + 1] === '"') { field += '"'; i += 2; continue; }
@@ -710,10 +625,9 @@ function parseCSV(text) {
       }
       field += char; i++; continue;
     }
-
     if (char === '"') { inQuotes = true; i++; continue; }
     if (char === ",") { row.push(field); field = ""; i++; continue; }
-    if (char === "\r") { i++; continue; } // normalize CRLF -> LF
+    if (char === "\r") { i++; continue; }
     if (char === "\n") {
       row.push(field); field = "";
       rows.push(row); row = [];
@@ -721,21 +635,10 @@ function parseCSV(text) {
     }
     field += char; i++;
   }
-  // last field/row (no trailing newline)
   if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
-
-  // Drop fully-empty trailing rows (common with trailing newlines)
   while (rows.length && rows[rows.length - 1].every((c) => c.trim() === "")) rows.pop();
-
   return rows;
 }
-
-/* ============================================================
-   COLUMN AUTO-DETECTION — guesses which CSV column corresponds
-   to each trade field, based on common header names used by
-   MT4/MT5 CSV exports and typical broker statement exports.
-   The user can always override the guess before importing.
-   ============================================================ */
 const FIELD_ALIASES = {
   date: ["date", "open time", "opentime", "time", "date/time"],
   symbol: ["symbol", "pair", "instrument"],
@@ -749,7 +652,6 @@ const FIELD_ALIASES = {
   sl: ["s / l", "s/l", "stop loss", "sl"],
   tp: ["t / p", "t/p", "take profit", "tp"],
 };
-
 function guessColumnMapping(headerRow) {
   const normalized = headerRow.map((h) => h.trim().toLowerCase());
   const mapping = {};
@@ -761,47 +663,38 @@ function guessColumnMapping(headerRow) {
       if (foundIdx !== -1) break;
     }
     if (foundIdx === -1) {
-      // fallback: partial match
       for (const alias of aliases) {
         foundIdx = normalized.findIndex((h) => h.includes(alias));
         if (foundIdx !== -1) break;
       }
     }
-    mapping[field] = foundIdx; // -1 if not found
+    mapping[field] = foundIdx;
   });
   return mapping;
 }
-
-/* Parse a "Buy"/"Sell"/"buy"/"sell"/"0"/"1" style type value into "Buy" or "Sell". */
 function normalizeTradeType(raw) {
   const v = String(raw || "").trim().toLowerCase();
   if (v === "buy" || v === "0" || v === "long") return "Buy";
   if (v === "sell" || v === "1" || v === "short") return "Sell";
   return "Buy";
 }
-
-/* Parse a date string in several common formats into YYYY-MM-DD.
-   Falls back to today's date if unparseable. */
 function normalizeDate(raw) {
   if (!raw) return new Date().toISOString().slice(0, 10);
   const s = String(raw).trim();
-  // Try native Date parsing first (handles ISO and many common formats)
   const asDate = new Date(s.replace(/\./g, "-").replace(" ", "T"));
   if (!isNaN(asDate.getTime())) return asDate.toISOString().slice(0, 10);
   return new Date().toISOString().slice(0, 10);
 }
-
 function parseNumber(raw) {
   if (raw === undefined || raw === null || raw === "") return 0;
   const cleaned = String(raw).replace(/[^0-9.\-]/g, "");
   const n = parseFloat(cleaned);
   return isNaN(n) ? 0 : n;
 }
-"use strict";
 
 /* ============================================================
-   SHARED UI PRIMITIVES (vanilla DOM builders)
-   ============================================================ */
+  SHARED UI PRIMITIVES
+============================================================ */
 function Card(children, opts) {
   opts = opts || {};
   const style = Object.assign({
@@ -811,7 +704,6 @@ function Card(children, opts) {
   }, opts.style || {});
   return el("div", { className: opts.className || "", style }, children);
 }
-
 function kpiCard(label, value, opts) {
   opts = opts || {};
   return Card([
@@ -823,47 +715,39 @@ function kpiCard(label, value, opts) {
     opts.sub ? el("span", { style: { color: C.subtext, fontSize: "11px", marginTop: "2px" } }, opts.sub) : null,
   ], { style: { gap: "0" } });
 }
-
 function sectionTitle(text, action) {
   return el("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" } }, [
     el("h2", { style: { color: C.text, fontSize: "15px", fontWeight: "600", margin: "0" } }, text),
     action || "",
   ]);
 }
-
 function pill(text, color, bg) {
   return el("span", {
     style: { color: color || C.subtext, background: bg || "rgba(148,163,184,0.12)", fontSize: "11px", fontWeight: "600", padding: "2px 8px", borderRadius: "999px", whiteSpace: "nowrap", display: "inline-block" },
   }, text);
 }
-
 function resultPill(result) {
   const map = { Win: [C.profit, "rgba(34,197,94,0.14)"], Loss: [C.loss, "rgba(239,68,68,0.14)"], Breakeven: [C.subtext, "rgba(148,163,184,0.14)"] };
   const [color, bg] = map[result] || map.Breakeven;
   return pill(result, color, bg);
 }
-
 function detailRow(label, value) {
   return el("div", { style: { display: "flex", flexDirection: "column" } }, [
     el("span", { style: { color: C.subtext, fontSize: "10.5px" } }, label),
     el("span", { style: { color: C.text, fontSize: "12.5px", fontWeight: "600" } }, String(value)),
   ]);
 }
-
 function grid2(children, gap) {
   return el("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: (gap || 12) + "px" } }, children);
 }
-
 function row(children, opts) {
   opts = opts || {};
   return el("div", { style: Object.assign({ display: "flex", flexDirection: "row", alignItems: opts.align || "center", justifyContent: opts.justify || "flex-start", gap: (opts.gap || 0) + "px" }, opts.style || {}) }, children);
 }
-
 function col(children, opts) {
   opts = opts || {};
   return el("div", { style: Object.assign({ display: "flex", flexDirection: "column", gap: (opts.gap || 0) + "px" }, opts.style || {}) }, children);
 }
-
 function chip(text, active, onClick) {
   return el("button", {
     onClick,
@@ -874,22 +758,18 @@ function chip(text, active, onClick) {
     },
   }, text);
 }
-
 function textInput(attrs) {
   attrs = attrs || {};
   const style = Object.assign({ background: C.card, border: `1px solid ${C.border}`, borderRadius: "10px", padding: "10px 12px", color: C.text, fontSize: "13.5px", width: "100%", outline: "none", boxSizing: "border-box" }, attrs.style || {});
   const input = el(attrs.tag || "input", Object.assign({}, attrs, { style }));
   return input;
 }
-
 function fieldLabel(text) {
   return el("span", { style: { color: C.subtext, fontSize: "12px", fontWeight: "500" } }, text);
 }
-
 function field(labelText, inputNode) {
   return col([fieldLabel(labelText), inputNode], { gap: 6 });
 }
-
 function toggleSwitch(checked, onClick) {
   const knob = el("span", { style: { position: "absolute", top: "2px", left: checked ? "21px" : "3px", width: "18px", height: "18px", borderRadius: "999px", background: "#fff", transition: "left 0.15s" } });
   return el("button", {
@@ -897,7 +777,6 @@ function toggleSwitch(checked, onClick) {
     style: { width: "42px", height: "24px", borderRadius: "999px", background: checked ? C.accent : C.border, position: "relative", border: "none", cursor: "pointer", padding: "0", transition: "background 0.15s" },
   }, [knob]);
 }
-
 function primaryButton(text, onClick, opts) {
   opts = opts || {};
   const disabled = opts.disabled;
@@ -911,7 +790,6 @@ function primaryButton(text, onClick, opts) {
     },
   }, text);
 }
-
 function ghostButton(text, onClick, opts) {
   opts = opts || {};
   return el("button", {
@@ -923,20 +801,17 @@ function ghostButton(text, onClick, opts) {
     }, opts.style || {}),
   }, opts.icon ? [opts.icon, text] : [text]);
 }
-
 function emptyState(text) {
   return Card([el("span", { style: { color: C.subtext, fontSize: "13px" } }, text)], { style: { alignItems: "center", padding: "24px 16px" } });
 }
 
 /* ============================================================
-   MODAL / DIALOG SYSTEM (replaces window.prompt/confirm with
-   real in-app styled dialogs)
-   ============================================================ */
+  MODAL / DIALOG SYSTEM
+============================================================ */
 function openOverlay(sheetChildren, opts) {
   opts = opts || {};
   const overlay = el("div", { style: { position: "fixed", inset: "0", zIndex: "60", display: "flex", alignItems: opts.center ? "center" : "flex-end", justifyContent: "center", background: "rgba(0,0,0,0.6)", padding: opts.center ? "24px" : "0" } });
   overlay.addEventListener("click", (e) => { if (e.target === overlay && opts.dismissible !== false) closeIt(); });
-
   const sheet = el("div", {
     style: Object.assign({
       width: "100%", maxWidth: "420px", margin: "0 auto",
@@ -946,35 +821,27 @@ function openOverlay(sheetChildren, opts) {
     }, opts.sheetStyle || {}),
   }, sheetChildren);
   sheet.addEventListener("click", (e) => e.stopPropagation());
-
   overlay.appendChild(sheet);
   document.body.appendChild(overlay);
-
   function closeIt() { overlay.remove(); }
   return { overlay, sheet, close: closeIt };
 }
-
 function dialogHeader(title, onClose) {
   return row([
     el("span", { style: { color: C.text, fontSize: "16px", fontWeight: "700" } }, title),
     el("button", { onClick: onClose, style: { background: "none", border: "none", cursor: "pointer", display: "flex" } }, [Icons.x(20, C.subtext)]),
   ], { justify: "space-between", style: { padding: "18px 20px", borderBottom: `1px solid ${C.border}` } });
 }
-
-/* Text prompt dialog. Returns nothing; calls onSubmit(value) if confirmed. */
 function promptDialog(opts) {
   opts = opts || {};
   const state = { value: opts.initialValue || "" };
   let handle;
-
   const input = textInput({
     value: state.value, placeholder: opts.placeholder || "",
     oninput: (e) => (state.value = e.target.value),
     style: { fontSize: "15px", padding: "12px 14px" },
   });
-
   const errorLabel = el("span", { style: { color: C.loss, fontSize: "12px", display: "none" } });
-
   function submit() {
     const v = state.value.trim();
     if (opts.required !== false && !v) {
@@ -985,26 +852,20 @@ function promptDialog(opts) {
     handle.close();
     if (opts.onSubmit) opts.onSubmit(v);
   }
-
   input.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
-
   const body = col([
     opts.description ? el("p", { style: { color: C.subtext, fontSize: "12.5px", margin: "0" } }, opts.description) : null,
     input,
     errorLabel,
   ], { gap: 10, style: { padding: "18px 20px" } });
-
   const footer = row([
     ghostButton(opts.cancelText || "Cancel", () => handle.close(), { bg: C.cardAlt, color: C.subtext }),
     primaryButton(opts.submitText || "Save", submit, {}),
   ], { gap: 10, style: { padding: "16px 20px", borderTop: `1px solid ${C.border}` } });
-
   handle = openOverlay([dialogHeader(opts.title || "Enter value", () => handle.close()), body, footer], { center: true });
   setTimeout(() => input.focus && input.focus(), 50);
   return handle;
 }
-
-/* Confirmation dialog (replaces window.confirm). */
 function confirmDialog(opts) {
   opts = opts || {};
   let handle;
@@ -1012,7 +873,6 @@ function confirmDialog(opts) {
   const body = col([
     el("p", { style: { color: C.subtext, fontSize: "13px", margin: "0", lineHeight: "1.6" } }, opts.message || "Are you sure?"),
   ], { style: { padding: "18px 20px" } });
-
   function doCancel() {
     if (resolved) return;
     resolved = true;
@@ -1025,18 +885,14 @@ function confirmDialog(opts) {
     handle.close();
     if (opts.onConfirm) opts.onConfirm();
   }
-
   const footer = row([
     ghostButton(opts.cancelText || "Cancel", doCancel, { bg: C.cardAlt, color: C.subtext }),
     primaryButton(opts.confirmText || "Confirm", doConfirm, { bg: opts.danger ? C.loss : C.accent, color: opts.danger ? "#fff" : "#0F172A" }),
   ], { gap: 10, style: { padding: "16px 20px", borderTop: `1px solid ${C.border}` } });
-
   handle = openOverlay([dialogHeader(opts.title || "Confirm", doCancel), body, footer], { center: true, dismissible: false });
   handle.overlay.addEventListener("click", (e) => { if (e.target === handle.overlay) doCancel(); });
   return handle;
 }
-
-/* Single-select dialog: pick one option from a list (replaces prompt-with-options pattern). */
 function selectDialog(opts) {
   opts = opts || {};
   let handle;
@@ -1052,30 +908,26 @@ function selectDialog(opts) {
 }
 
 /* ============================================================
-   MEDIA LIGHTBOX — full-screen viewer for a trade's photos/videos
-   ============================================================ */
+  MEDIA LIGHTBOX
+============================================================ */
 function openMediaLightbox(mediaList, startIndex) {
   let idx = startIndex || 0;
   const overlay = el("div", { style: { position: "fixed", inset: "0", zIndex: "70", background: "rgba(0,0,0,0.94)", display: "flex", flexDirection: "column" } });
-
   const topBar = row([
     el("span", { style: { color: "#fff", fontSize: "12px" } }, `${idx + 1} / ${mediaList.length}`),
     el("button", { onClick: () => overlay.remove(), style: { background: "none", border: "none", cursor: "pointer", display: "flex" } }, [Icons.x(22, "#fff")]),
   ], { justify: "space-between", style: { padding: "16px 20px" } });
-
   const viewerWrap = el("div", { style: { flex: "1", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", position: "relative" } });
-
   function renderCurrent() {
     clear(viewerWrap);
     const m = mediaList[idx];
     const node = m.type.startsWith("video")
-      ? el("video", { src: m.data, controls: true, autoplay: true, style: { maxWidth: "100%", maxHeight: "100%" } })
-      : el("img", { src: m.data, style: { maxWidth: "100%", maxHeight: "100%", objectFit: "contain" } });
+        ? el("video", { src: m.data, controls: true, autoplay: true, style: { maxWidth: "100%", maxHeight: "100%" } })
+        : el("img", { src: m.data, style: { maxWidth: "100%", maxHeight: "100%", objectFit: "contain" } });
     viewerWrap.appendChild(node);
     topBar.firstChild.textContent = `${idx + 1} / ${mediaList.length}`;
   }
   renderCurrent();
-
   if (mediaList.length > 1) {
     const prevBtn = el("button", {
       onClick: () => { idx = (idx - 1 + mediaList.length) % mediaList.length; renderCurrent(); },
@@ -1088,14 +940,11 @@ function openMediaLightbox(mediaList, startIndex) {
     viewerWrap.appendChild(prevBtn);
     viewerWrap.appendChild(nextBtn);
   }
-
   overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
   overlay.appendChild(topBar);
   overlay.appendChild(viewerWrap);
   document.body.appendChild(overlay);
 }
-
-/* Estimate the decoded byte size of a base64 data URL and format it human-readable. */
 function estimateDataUrlSize(dataUrl) {
   const base64 = dataUrl.split(",")[1] || "";
   const bytes = Math.floor(base64.length * 0.75);
@@ -1106,10 +955,8 @@ function formatBytes(bytes) {
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + " KB";
   return (bytes / (1024 * 1024)).toFixed(1) + " MB";
 }
-/* Warn (via confirm dialog) if a file is large enough to strain browser storage.
-   Returns a Promise<boolean> resolved true if the user wants to proceed. */
 function confirmLargeFileIfNeeded(file) {
-  const LARGE_THRESHOLD = 15 * 1024 * 1024; // 15MB
+  const LARGE_THRESHOLD = 15 * 1024 * 1024;
   if (file.size < LARGE_THRESHOLD) return Promise.resolve(true);
   return new Promise((resolve) => {
     confirmDialog({
@@ -1122,12 +969,152 @@ function confirmLargeFileIfNeeded(file) {
     });
   });
 }
-"use strict";
 
+/* ============================================================
+  PARSER HTML متاتریدر 5
+============================================================ */
+async function parseMT4HTML(text) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(text, "text/html");
+  const tables = doc.querySelectorAll("table");
+  let positionTable = null;
+
+  for (const table of tables) {
+    const headers = Array.from(table.querySelectorAll("tr:first-child td"))
+      .map(td => td.textContent.trim().toLowerCase());
+    if (headers.includes("symbol") && headers.includes("profit")) {
+      positionTable = table;
+      break;
+    }
+  }
+
+  if (!positionTable) throw new Error("Positions table not found");
+
+  const rows = Array.from(positionTable.querySelectorAll("tr")).slice(1);
+  const trades = [];
+
+  for (const row of rows) {
+    const cells = Array.from(row.querySelectorAll("td"));
+    if (cells.length < 10) continue;
+
+    const openTime = cells[0]?.textContent.trim() || "";
+    const symbol = cells[2]?.textContent.trim() || "";
+    const type = cells[3]?.textContent.trim().toLowerCase() || "";
+    const volume = cells[4]?.textContent.trim() || "";
+    const entryPrice = cells[5]?.textContent.trim() || "";
+    const sl = cells[6]?.textContent.trim() || "";
+    const tp = cells[7]?.textContent.trim() || "";
+    const closeTime = cells[8]?.textContent.trim() || "";
+    const exitPrice = cells[9]?.textContent.trim() || "";
+    const profit = cells[12]?.textContent.trim() || "";
+
+    if (!symbol || !profit) continue;
+
+    const dateMatch = openTime.match(/(\d{4}\.\d{2}\.\d{2})/);
+    const dateStr = dateMatch ? dateMatch[1].replace(/\./g, "-") : new Date().toISOString().slice(0, 10);
+
+    trades.push({
+      id: uid("IMP"),
+      date: dateStr,
+      time: openTime.split(" ")[1] || "00:00:00",
+      pair: symbol.toUpperCase(),
+      type: type === "buy" ? "Buy" : "Sell",
+      entry: entryPrice,
+      sl,
+      tp,
+      lot: volume,
+      risk: "\u2014",
+      commission: "",
+      result: parseFloat(profit) > 0 ? "Win" : parseFloat(profit) < 0 ? "Loss" : "Breakeven",
+      pnl: parseFloat(profit) || 0,
+      equity: 0,
+      strategy: "Imported",
+      session: suggestSession(openTime.split(" ")[1] || "00:00:00"),
+      hour: parseInt(openTime.split(" ")[1]?.split(":")[0]) || 0,
+      day: new Date(dateStr).toLocaleDateString("en-US", { weekday: "short" }),
+      emotion: "Neutral",
+      confidence: 3,
+      mistakes: [],
+      notes: `Imported from MT4 HTML`,
+      specialNotes: "",
+      account: (state.accounts[0] && state.accounts[0].name) || "",
+      media: [],
+    });
+  }
+
+  return trades;
+}
+
+/* ============================================================
+  CALENDAR شمسی
+============================================================ */
+function gregorianToJalali(gy, gm, gd) {
+  let jy, jm, jd;
+  let g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+  if (gy > 1600) {
+    jy = 979;
+    gy -= 1600;
+  } else {
+    jy = 0;
+    gy -= 621;
+  }
+  let gy2 = (gm > 2) ? (gy + 1) : gy;
+  let days = (365 * gy) + Math.floor((gy2 + 3) / 4) - Math.floor((gy2 + 99) / 100) + Math.floor((gy2 + 399) / 400) - 80 + gd + g_d_m[gm - 1];
+  jy += 33 * Math.floor(days / 12053);
+  days %= 12053;
+  jy += 4 * Math.floor(days / 1461);
+  days %= 1461;
+  if (days > 365) {
+    jy += Math.floor((days - 1) / 365);
+    days = (days - 1) % 365;
+  }
+  jm = (days < 186) ? 1 + Math.floor(days / 31) : 7 + Math.floor((days - 186) / 30);
+  jd = 1 + ((days < 186) ? (days % 31) : ((days - 186) % 30));
+  return [jy, jm, jd];
+}
+function jalaliToGregorian(jy, jm, jd) {
+  if (jy > 979) {
+    gy = jy - 979;
+    jy = 0;
+  } else {
+    gy = jy - 621;
+  }
+  let days = (365 * jy) + Math.floor((jy / 33) * 8) + Math.floor(((jy % 33) + 3) / 4) + 78 + jd + ((jm < 7) ? (jm - 1) * 31 : ((jm - 7) * 30) + 186);
+  gy += 400 * Math.floor(days / 146097);
+  days %= 146097;
+  if (days > 36524) {
+    gy += 100 * Math.floor(--days / 36524);
+    days %= 36524;
+    if (days >= 365) days++;
+  }
+  gy += 4 * Math.floor(days / 1461);
+  days %= 1461;
+  if (days > 365) {
+    gy += Math.floor((days - 1) / 365);
+    days = (days - 1) % 365;
+  }
+  let gd = days + 1;
+  let gm = (gd <= 186) ? Math.ceil(gd / 31) : Math.ceil((gd - 186) / 30) + 6;
+  gd = (gm <= 6) ? gd - (gm - 1) * 31 : gd - 186 - (gm - 7) * 30;
+  gy += 621;
+  return [gy, gm, gd];
+}
+function formatDateDual(dateStr) {
+  const d = new Date(dateStr + "T00:00:00");
+  const gy = d.getFullYear(), gm = d.getMonth() + 1, gd = d.getDate();
+  const [jy, jm, jd] = gregorianToJalali(gy, gm, gd);
+  const greg = `${gy}-${String(gm).padStart(2, '0')}-${String(gd).padStart(2, '0')}`;
+  const jalali = `${jy}/${String(jm).padStart(2, '0')}/${String(jd).padStart(2, '0')}`;
+  return { greg, jalali };
+}
+
+/* ============================================================
+  RENDER COMPONENTS
+============================================================ */
+// --- Dashboard ---
 function renderDashboard(state) {
   const trades = state.trades;
   const stats = computeStats(trades);
-
   const equityValues = trades.map((t) => t.equity);
   const distribution = [
     { label: "Win", value: stats.wins, color: C.profit },
@@ -1138,29 +1125,23 @@ function renderDashboard(state) {
     const st = trades.filter((t) => t.session === s);
     return { label: s.replace("London/New York Overlap", "Overlap"), value: Number(st.reduce((a, t) => a + t.pnl, 0).toFixed(0)) };
   });
-
   const kpis = grid2([
     kpiCard(t("Net Profit"), fmtMoney(stats.net), { valueColor: pnlColor(stats.net), icon: Icons.trendUp(14, C.subtext) }),
     kpiCard(t("Win Rate"), fmtPct(stats.winRate), { icon: Icons.target(14, C.subtext) }),
     kpiCard(t("Profit Factor"), stats.profitFactor === Infinity ? "\u221e" : stats.profitFactor.toFixed(2), { icon: Icons.activity(14, C.subtext) }),
     kpiCard(t("Max Drawdown"), fmtMoney(-stats.maxDD), { valueColor: C.loss, icon: Icons.trendDown(14, C.subtext) }),
   ]);
-
   const equityCard = Card([sectionTitle(t("Equity Curve")), areaChart(equityValues, { money: true, height: 160 })]);
-
   const legendRow = row(distribution.map((d) => row([
     el("span", { style: { width: "6px", height: "6px", borderRadius: "999px", background: d.color, display: "inline-block" } }),
     el("span", { style: { fontSize: "11px", color: C.subtext } }, d.label),
   ], { gap: 4 })), { gap: 12, justify: "center", style: { marginTop: "-4px" } });
-
   const distCard = Card([
     sectionTitle(t("Trade Distribution")),
     el("div", { style: { display: "flex", justifyContent: "center" } }, [donutChart(distribution)]),
     legendRow,
   ]);
-
   const sessionCard = Card([sectionTitle(t("By Session")), hBarChart(sessions, { labelWidth: 62 })]);
-
   const recentTrades = Card([
     el("div", { style: { padding: "16px 16px 8px" } }, [sectionTitle(t("Recent Trades"))]),
     col(trades.slice(-6).reverse().map((t) => row([
@@ -1174,20 +1155,17 @@ function renderDashboard(state) {
       ], { gap: 8 }),
     ], { justify: "space-between", style: { padding: "10px 16px", borderTop: `1px solid ${C.border}` } }))),
   ], { padded: false });
-
   return col([kpis, equityCard, grid2([distCard, sessionCard]), recentTrades], { gap: 16, style: { paddingBottom: "16px" } });
 }
-"use strict";
 
+// --- Checklist ---
 function renderChecklist(state, actions) {
   const strategies = state.strategies;
   if (!state._checklistActiveId || !strategies.find((s) => s.id === state._checklistActiveId)) {
     state._checklistActiveId = strategies[0] ? strategies[0].id : null;
   }
   if (!state._checklistExpanded) state._checklistExpanded = { st1: true };
-
   const active = strategies.find((s) => s.id === state._checklistActiveId);
-
   function createStrategyFlow() {
     promptDialog({
       title: "New Strategy",
@@ -1202,14 +1180,12 @@ function renderChecklist(state, actions) {
       },
     });
   }
-
   if (!active) {
     return Card([
       el("p", { style: { color: C.subtext, fontSize: "13px", textAlign: "center", margin: "0 0 12px" } }, t("No strategy yet.")),
       primaryButton(t("Create Strategy"), createStrategyFlow, {}),
     ], { style: { alignItems: "center" } });
   }
-
   function allTasksOf(strategy) {
     let tasks = [];
     strategy.stages.forEach((st) => {
@@ -1218,12 +1194,10 @@ function renderChecklist(state, actions) {
     });
     return tasks;
   }
-
   const allTasks = allTasksOf(active);
   const completedCount = allTasks.filter((t) => t.done).length;
   const allDone = allTasks.length > 0 && completedCount === allTasks.length;
   const progress = allTasks.length ? (completedCount / allTasks.length) * 100 : 0;
-
   function toggleTask(stageId, taskId, subId) {
     const stage = active.stages.find((s) => s.id === stageId);
     if (subId) {
@@ -1236,7 +1210,6 @@ function renderChecklist(state, actions) {
     }
     actions.rerender();
   }
-
   function addTask(stageId, subId) {
     promptDialog({
       title: "New Task",
@@ -1251,7 +1224,6 @@ function renderChecklist(state, actions) {
       },
     });
   }
-
   function editTask(stageId, taskId, subId) {
     const stage = active.stages.find((s) => s.id === stageId);
     const list = subId ? stage.subsections.find((s) => s.id === subId).tasks : stage.tasks;
@@ -1263,7 +1235,6 @@ function renderChecklist(state, actions) {
       onSubmit: (label) => { task.label = label; actions.rerender(); },
     });
   }
-
   function deleteTask(stageId, taskId, subId) {
     confirmDialog({
       title: "Delete Task",
@@ -1282,7 +1253,6 @@ function renderChecklist(state, actions) {
       },
     });
   }
-
   function addStage() {
     promptDialog({
       title: "New Stage",
@@ -1294,7 +1264,6 @@ function renderChecklist(state, actions) {
       },
     });
   }
-
   function editStageName(stageId) {
     const stage = active.stages.find((s) => s.id === stageId);
     promptDialog({
@@ -1304,7 +1273,6 @@ function renderChecklist(state, actions) {
       onSubmit: (name) => { stage.name = name; actions.rerender(); },
     });
   }
-
   function deleteStage(stageId) {
     confirmDialog({
       title: "Delete Stage",
@@ -1317,7 +1285,6 @@ function renderChecklist(state, actions) {
       },
     });
   }
-
   function moveStage(idx, dir) {
     const newIdx = idx + dir;
     if (newIdx < 0 || newIdx >= active.stages.length) return;
@@ -1325,7 +1292,6 @@ function renderChecklist(state, actions) {
     [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
     actions.rerender();
   }
-
   function renameStrategy() {
     promptDialog({
       title: "Rename Strategy",
@@ -1334,7 +1300,6 @@ function renderChecklist(state, actions) {
       onSubmit: (name) => { active.name = name; actions.rerender(); },
     });
   }
-
   function deleteStrategy() {
     confirmDialog({
       title: "Delete Strategy",
@@ -1348,7 +1313,6 @@ function renderChecklist(state, actions) {
       },
     });
   }
-
   function taskRow(task, onToggle, onEdit, onDelete) {
     return row([
       el("button", {
@@ -1364,12 +1328,10 @@ function renderChecklist(state, actions) {
       ], { gap: 2 }),
     ], { justify: "space-between", gap: 6 });
   }
-
   const strategyTabs = row([
     ...strategies.map((s) => chip(s.name, s.id === active.id, () => { state._checklistActiveId = s.id; actions.rerender(); })),
     el("button", { onClick: createStrategyFlow, style: { padding: "6px 12px", borderRadius: "10px", background: C.card, border: `1px solid ${C.border}`, cursor: "pointer", display: "flex", alignItems: "center" } }, [Icons.plus(14, C.subtext)]),
   ], { gap: 8, style: { overflowX: "auto", paddingBottom: "4px" } });
-
   const strategyHeaderCard = Card([
     row([
       el("span", { style: { color: C.text, fontSize: "14px", fontWeight: "700" } }, active.name),
@@ -1377,9 +1339,8 @@ function renderChecklist(state, actions) {
         el("button", { onClick: renameStrategy, style: { background: "none", border: "none", cursor: "pointer", display: "flex", padding: "4px" } }, [Icons.file(14, C.subtext)]),
         el("button", { onClick: deleteStrategy, style: { background: "none", border: "none", cursor: "pointer", display: "flex", padding: "4px" } }, [Icons.trash(14, C.loss)]),
       ], { gap: 4 }),
-    ], { justify: "space-between" }),
+    ], { justify: "space-between", style: { padding: "12px 14px" } }),
   ], { style: { padding: "12px 14px" } });
-
   const progressCard = Card([
     row([
       el("span", { style: { color: C.text, fontSize: "13px", fontWeight: "600" } }, t("Checklist Progress")),
@@ -1389,7 +1350,6 @@ function renderChecklist(state, actions) {
       el("div", { style: { height: "100%", borderRadius: "999px", width: progress + "%", background: allDone ? C.profit : C.accent, transition: "width 0.2s" } }),
     ]),
   ]);
-
   const stageCards = active.stages.map((stage, idx) => {
     const expanded = !!state._checklistExpanded[stage.id];
     const header = row([
@@ -1407,7 +1367,6 @@ function renderChecklist(state, actions) {
         el("button", { onClick: () => deleteStage(stage.id), style: { background: "none", border: "none", cursor: "pointer", display: "flex" } }, [Icons.trash(14, C.loss)]),
       ], { gap: 4 }),
     ], { justify: "space-between", style: { padding: "12px 14px" } });
-
     let body = null;
     if (expanded) {
       if (stage.subsections) {
@@ -1426,38 +1385,31 @@ function renderChecklist(state, actions) {
       }
       body.style.borderTop = `1px solid ${C.border}`;
     }
-
     return Card([header, body], { padded: false });
   });
-
   const addStageBtn = el("button", {
     onClick: addStage,
     style: { display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", padding: "10px", borderRadius: "12px", border: `1px dashed ${C.border}`, color: C.subtext, fontSize: "12px", fontWeight: "600", background: "none", cursor: "pointer" },
   }, [Icons.plus(14, C.subtext), t("Add Stage")]);
-
   const openJournalBtn = primaryButton(
     allDone ? t("Open Trade Journal") : `${t("Complete all tasks")} (${completedCount}/${allTasks.length})`,
     () => actions.navigate("journal"),
     { disabled: !allDone }
   );
-
   const stagesSection = active.stages.length
     ? col(stageCards, { gap: 10 })
     : emptyState(t("No stages yet. Add your first stage below."));
-
   return col([strategyTabs, strategyHeaderCard, progressCard, stagesSection, addStageBtn, openJournalBtn], { gap: 16, style: { paddingBottom: "16px" } });
 }
-"use strict";
 
+// --- Journal ---
 function renderJournal(state, actions) {
   if (state._journalFilterPair === undefined) state._journalFilterPair = "All";
   if (state._journalFilterStrategy === undefined) state._journalFilterStrategy = "All";
   if (state._journalFilterAccount === undefined) state._journalFilterAccount = "All";
   if (state._journalSearch === undefined) state._journalSearch = "";
   if (state._journalSelected === undefined) state._journalSelected = null;
-
   const container = col([], { gap: 12, style: { paddingBottom: "16px" } });
-
   const searchInput = textInput({
     value: state._journalSearch, placeholder: t("Search pair..."),
     style: { background: "transparent", border: "none", padding: "0" },
@@ -1467,28 +1419,22 @@ function renderJournal(state, actions) {
     rebuildList();
   });
   const searchBox = row([Icons.search(14, C.subtext), searchInput], { gap: 8, style: { padding: "10px 12px", borderRadius: "12px", background: C.card, border: `1px solid ${C.border}` } });
-
   const pairChips = row([
     chip(t("All Pairs"), state._journalFilterPair === "All", () => { state._journalFilterPair = "All"; actions.rerender(); }),
     ...state.symbols.map((p) => chip(p, state._journalFilterPair === p, () => { state._journalFilterPair = p; actions.rerender(); })),
   ], { gap: 8, style: { overflowX: "auto", paddingBottom: "4px" } });
-
   const strategyNames = [...new Set(state.trades.map((t) => t.strategy))];
   const stratChips = row([
     chip(t("All Strategies"), state._journalFilterStrategy === "All", () => { state._journalFilterStrategy = "All"; actions.rerender(); }),
     ...strategyNames.map((s) => chip(s, state._journalFilterStrategy === s, () => { state._journalFilterStrategy = s; actions.rerender(); })),
   ], { gap: 8, style: { overflowX: "auto", paddingBottom: "4px" } });
-
   const accountNames = state.accounts.map((a) => a.name);
   const accountChips = row([
     chip(t("All Accounts"), state._journalFilterAccount === "All", () => { state._journalFilterAccount = "All"; actions.rerender(); }),
     ...accountNames.map((a) => chip(a, state._journalFilterAccount === a, () => { state._journalFilterAccount = a; actions.rerender(); })),
   ], { gap: 8, style: { overflowX: "auto", paddingBottom: "4px" } });
-
   const addBtn = ghostButton(t("Add Trade Manually"), () => actions.openAddTrade(), { icon: Icons.plus(15, C.accent) });
-
   const listWrap = el("div", {});
-
   function mediaThumbGrid(mediaArr, onRemove) {
     const grid = el("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "6px", marginTop: "8px" } });
     mediaArr.forEach((m, i) => {
@@ -1510,7 +1456,6 @@ function renderJournal(state, actions) {
     });
     return grid;
   }
-
   async function handleMediaFiles(fileList, targetArr, onDone) {
     const files = Array.from(fileList || []);
     for (const file of files) {
@@ -1521,7 +1466,6 @@ function renderJournal(state, actions) {
     }
     onDone();
   }
-
   function tradeCard(t) {
     const isOpen = state._journalSelected === t.id;
     const titleRow = row([
@@ -1536,7 +1480,6 @@ function renderJournal(state, actions) {
     ], { justify: "space-between" });
     const titleClickArea = el("div", { style: { cursor: "pointer" } }, [titleRow]);
     titleClickArea.addEventListener("click", () => { state._journalSelected = isOpen ? null : t.id; rebuildList(); });
-
     const editBtn = el("button", {
       onClick: (ev) => { ev.stopPropagation(); openAddTradeModal(state, actions, t); },
       style: { background: "none", border: "none", cursor: "pointer", display: "flex", padding: "4px" },
@@ -1555,7 +1498,6 @@ function renderJournal(state, actions) {
     }, [Icons.trash(14, C.loss)]);
     const header = row([titleClickArea, row([editBtn, deleteBtn], { gap: 2 })], { justify: "space-between", align: "flex-start", style: { width: "100%" } });
     titleClickArea.style.flex = "1";
-
     const children = [header];
     if (isOpen) {
       const acc = state.accounts.find((a) => a.name === t.account);
@@ -1585,15 +1527,12 @@ function renderJournal(state, actions) {
         ]));
       }
       children.push(details);
-
       const media = t.media || [];
       const mediaSection = el("div", { style: { marginTop: "12px" } });
       mediaSection.appendChild(row([
         row([Icons.image(13, C.subtext), el("span", { style: { color: C.subtext, fontSize: "11px" } }, media.length ? `${media.length} attachment${media.length > 1 ? "s" : ""} \u2014 tap to view` : "No media attached")], { gap: 6 }),
       ], { justify: "space-between" }));
-
       if (media.length) mediaSection.appendChild(mediaThumbGrid(media, (m) => { t.media = t.media.filter((x) => x.id !== m.id); actions.rerender(); }));
-
       const mediaInput = el("input", { type: "file", accept: "image/*,video/*", multiple: true, style: { display: "none" } });
       mediaInput.addEventListener("change", (e) => {
         if (!t.media) t.media = [];
@@ -1602,36 +1541,30 @@ function renderJournal(state, actions) {
       });
       mediaSection.appendChild(ghostButton("Add Photo / Video", () => mediaInput.click(), { icon: Icons.upload(13, C.accent), style: { marginTop: "8px", padding: "8px" } }));
       mediaSection.appendChild(mediaInput);
-
       children.push(mediaSection);
     }
     return Card(children, { style: { padding: "14px" } });
   }
-
   function rebuildList() {
     clear(listWrap);
     const filtered = state.trades.filter((t) =>
-      (state._journalFilterPair === "All" || t.pair === state._journalFilterPair) &&
-      (state._journalFilterStrategy === "All" || t.strategy === state._journalFilterStrategy) &&
-      (state._journalFilterAccount === "All" || t.account === state._journalFilterAccount) &&
-      (state._journalSearch === "" || t.pair.toLowerCase().includes(state._journalSearch.toLowerCase()))
-    ).slice().reverse();
+        (state._journalFilterPair === "All" || t.pair === state._journalFilterPair) &&
+        (state._journalFilterStrategy === "All" || t.strategy === state._journalFilterStrategy) &&
+        (state._journalFilterAccount === "All" || t.account === state._journalFilterAccount) &&
+        (state._journalSearch === "" || t.pair.toLowerCase().includes(state._journalSearch.toLowerCase()))
+      ).slice().reverse();
     const list = filtered.length ? col(filtered.map(tradeCard), { gap: 8 }) : emptyState(t("No trades match these filters."));
     listWrap.appendChild(list);
   }
   rebuildList();
-
   container.appendChild(searchBox);
   container.appendChild(pairChips);
   container.appendChild(stratChips);
   container.appendChild(accountChips);
   container.appendChild(addBtn);
   container.appendChild(listWrap);
-
   return container;
 }
-
-/* Read a File object as a base64 data URL (works fully offline). */
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -1641,47 +1574,39 @@ function readFileAsDataUrl(file) {
   });
 }
 
-/* ============================================================
-   ADD TRADE MODAL
-   ============================================================ */
+// --- Add Trade Modal ---
 function openAddTradeModal(state, actions, existingTrade) {
   const now = new Date();
-  const nowTime = now.toTimeString().slice(0, 8); // HH:MM:SS
+  const nowTime = now.toTimeString().slice(0, 8);
   const isEdit = !!existingTrade;
-
   const form = isEdit
     ? {
-        date: existingTrade.date, time: existingTrade.time || nowTime, pair: existingTrade.pair, type: existingTrade.type,
-        entry: existingTrade.entry, sl: existingTrade.sl, tp: existingTrade.tp, lot: existingTrade.lot, risk: existingTrade.risk,
-        commission: existingTrade.commission || "", result: existingTrade.result, pnl: String(existingTrade.pnl ?? ""),
-        strategy: existingTrade.strategy, account: existingTrade.account,
-        session: existingTrade.session || suggestSession(existingTrade.time || nowTime), sessionAuto: false,
-        emotion: existingTrade.emotion, confidence: existingTrade.confidence,
-        mistakes: (existingTrade.mistakes || []).slice(), notes: existingTrade.notes || "",
-        specialNotes: existingTrade.specialNotes || "", media: (existingTrade.media || []).slice(),
-      }
+      date: existingTrade.date, time: existingTrade.time || nowTime, pair: existingTrade.pair, type: existingTrade.type,
+      entry: existingTrade.entry, sl: existingTrade.sl, tp: existingTrade.tp, lot: existingTrade.lot, risk: existingTrade.risk,
+      commission: existingTrade.commission || "", result: existingTrade.result, pnl: String(existingTrade.pnl ?? ""),
+      strategy: existingTrade.strategy, account: existingTrade.account,
+      session: existingTrade.session || suggestSession(existingTrade.time || nowTime), sessionAuto: false,
+      emotion: existingTrade.emotion, confidence: existingTrade.confidence,
+      mistakes: (existingTrade.mistakes || []).slice(), notes: existingTrade.notes || "",
+      specialNotes: existingTrade.specialNotes || "", media: (existingTrade.media || []).slice(),
+    }
     : {
-        date: now.toISOString().slice(0, 10), time: nowTime, pair: state.symbols[0], type: "Buy",
-        entry: "", sl: "", tp: "", lot: "", risk: "", commission: "", result: "Win", pnl: "",
-        strategy: (state.strategies[0] && state.strategies[0].name) || "",
-        account: (state.accounts[0] && state.accounts[0].name) || "",
-        session: suggestSession(nowTime), sessionAuto: true,
-        emotion: EMOTIONS[0], confidence: 3, mistakes: [], notes: "", specialNotes: "", media: [],
-      };
-
+      date: now.toISOString().slice(0, 10), time: nowTime, pair: state.symbols[0], type: "Buy",
+      entry: "", sl: "", tp: "", lot: "", risk: "", commission: "", result: "Win", pnl: "",
+      strategy: (state.strategies[0] && state.strategies[0].name) || "",
+      account: (state.accounts[0] && state.accounts[0].name) || "",
+      session: suggestSession(nowTime), sessionAuto: true,
+      emotion: EMOTIONS[0], confidence: 3, mistakes: [], notes: "", specialNotes: "", media: [],
+    };
   const overlay = el("div", { style: { position: "fixed", inset: "0", zIndex: "50", display: "flex", alignItems: "flex-end", background: "rgba(0,0,0,0.6)" } });
   overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
-
   const sheet = el("div", { style: { width: "100%", maxWidth: "480px", margin: "0 auto", borderRadius: "24px 24px 0 0", display: "flex", flexDirection: "column", background: C.bg, maxHeight: "88vh" } });
   sheet.addEventListener("click", (e) => e.stopPropagation());
-
   const header = row([
     el("span", { style: { color: C.text, fontSize: "16px", fontWeight: "700" } }, isEdit ? t("Edit Trade") : t("New Trade")),
     el("button", { onClick: closeModal, style: { background: "none", border: "none", cursor: "pointer", display: "flex" } }, [Icons.x(20, C.subtext)]),
   ], { justify: "space-between", style: { padding: "16px 20px", borderBottom: `1px solid ${C.border}` } });
-
   const body = el("div", { style: { overflowY: "auto", padding: "16px 20px", display: "flex", flexDirection: "column", gap: "14px" } });
-
   function segButtons(options, current, onPick, colorFn) {
     return row(options.map((opt) => {
       const active = current === opt;
@@ -1691,19 +1616,17 @@ function openAddTradeModal(state, actions, existingTrade) {
       return btn;
     }), { gap: 8 });
   }
-
   function selectField(labelText, options, current, onPick, getLabel) {
     getLabel = getLabel || ((x) => x);
     const select = el("select", { style: { background: C.card, border: `1px solid ${C.border}`, borderRadius: "10px", padding: "10px 12px", color: C.text, fontSize: "13.5px", width: "100%" } },
-      options.map((opt) => el("option", { value: getLabel(opt), selected: getLabel(opt) === current }, getLabel(opt))));
+      options.map((opt) => el("option", { value: getLabel(opt), selected: getLabel(opt) === current }, getLabel(opt)))
+    );
     select.addEventListener("change", (e) => onPick(e.target.value));
     return field(labelText, select);
   }
-
   function rebuildBody() {
     clear(body);
     body.appendChild(field("Date", textInput({ type: "date", value: form.date, onchange: (e) => (form.date = e.target.value) })));
-
     const timeInput = textInput({
       type: "time", step: "1", value: form.time,
       onchange: (e) => {
@@ -1713,10 +1636,8 @@ function openAddTradeModal(state, actions, existingTrade) {
       },
     });
     body.appendChild(field("Entry Time (with seconds)", timeInput));
-
     body.appendChild(selectField("Pair", state.symbols, form.pair, (v) => (form.pair = v)));
     body.appendChild(field("Trade Type", segButtons(["Buy", "Sell"], form.type, (v) => (form.type = v), (v) => (v === "Buy" ? C.profit : C.loss))));
-
     const grid = el("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" } }, [
       field("Entry Price", textInput({ value: form.entry, oninput: (e) => (form.entry = e.target.value) })),
       field("Lot Size", textInput({ value: form.lot, oninput: (e) => (form.lot = e.target.value) })),
@@ -1727,35 +1648,28 @@ function openAddTradeModal(state, actions, existingTrade) {
       field("PnL ($)", textInput({ value: form.pnl, oninput: (e) => (form.pnl = e.target.value) })),
     ]);
     body.appendChild(grid);
-
-    // Session: auto-suggested from entry time, but always manually overridable
     const sessionSelect = el("select", { style: { background: C.card, border: `1px solid ${C.border}`, borderRadius: "10px", padding: "10px 12px", color: C.text, fontSize: "13.5px", width: "100%" } },
-      SESSION_OPTIONS.map((s) => el("option", { value: s, selected: s === form.session }, s)));
+      SESSION_OPTIONS.map((s) => el("option", { value: s, selected: s === form.session }, s))
+    );
     sessionSelect.addEventListener("change", (e) => { form.session = e.target.value; form.sessionAuto = false; });
     const sessionRow = col([
       row([fieldLabel("Session"), form.sessionAuto ? pill("Auto-suggested", C.accent, "rgba(56,189,248,0.14)") : pill("Manual", C.subtext)], { justify: "space-between" }),
       sessionSelect,
     ], { gap: 6 });
     body.appendChild(sessionRow);
-
     body.appendChild(field("Result", segButtons(["Win", "Loss", "Breakeven"], form.result, (v) => (form.result = v))));
-
     if (state.strategies.length) {
       body.appendChild(selectField("Strategy Used", state.strategies, form.strategy, (v) => (form.strategy = v), (s) => s.name));
     }
-
     if (state.accounts.length) {
       body.appendChild(selectField("Trading Account", state.accounts, form.account, (v) => (form.account = v), (a) => a.name));
     } else {
       body.appendChild(el("div", { style: { color: C.subtext, fontSize: "11.5px" } }, "No trading accounts yet \u2014 add one in Settings."));
     }
-
     body.appendChild(selectField("Emotion Before Trade", EMOTIONS, form.emotion, (v) => (form.emotion = v)));
-
     const confInput = textInput({ type: "range", min: "1", max: "5", value: form.confidence, oninput: (e) => { form.confidence = Number(e.target.value); confLabel.textContent = `Confidence Level: ${form.confidence}/5`; } });
     const confLabel = fieldLabel(`Confidence Level: ${form.confidence}/5`);
     body.appendChild(col([confLabel, confInput], { gap: 6 }));
-
     const mistakeWrap = row(MISTAKES.map((m) => {
       const active = form.mistakes.includes(m);
       const btn = el("button", { style: { padding: "6px 10px", borderRadius: "8px", fontSize: "12px", fontWeight: "500", background: active ? "rgba(239,68,68,0.18)" : C.card, color: active ? C.loss : C.subtext, border: `1px solid ${active ? C.loss : C.border}`, cursor: "pointer" } }, m);
@@ -1767,7 +1681,6 @@ function openAddTradeModal(state, actions, existingTrade) {
       return btn;
     }), { gap: 6, style: { flexWrap: "wrap" } });
     body.appendChild(field("Mistakes (if any)", mistakeWrap));
-
     const mediaInput = el("input", { type: "file", accept: "image/*,video/*", multiple: true, style: { display: "none" } });
     mediaInput.addEventListener("change", async (e) => {
       const files = e.target.files;
@@ -1782,16 +1695,16 @@ function openAddTradeModal(state, actions, existingTrade) {
     });
     const mediaPreview = form.media.length
       ? el("div", { style: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "6px" } }, form.media.map((m, i) => {
-          const thumb = m.type.startsWith("video")
-            ? el("div", { style: { position: "relative", borderRadius: "8px", overflow: "hidden", background: "#000", aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" } }, [Icons.video(16, "#fff")])
-            : el("img", { src: m.data, style: { width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: "8px", display: "block", cursor: "pointer" } });
-          thumb.addEventListener("click", (ev) => { ev.stopPropagation(); openMediaLightbox(form.media, i); });
-          const removeBtn = el("button", {
-            onClick: (ev) => { ev.stopPropagation(); form.media = form.media.filter((x) => x.id !== m.id); rebuildBody(); },
-            style: { position: "absolute", top: "2px", right: "2px", width: "16px", height: "16px", borderRadius: "999px", background: "rgba(0,0,0,0.6)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: "2" },
-          }, [Icons.x(10, "#fff")]);
-          return el("div", { style: { position: "relative" } }, [thumb, removeBtn]);
-        }))
+        const thumb = m.type.startsWith("video")
+          ? el("div", { style: { position: "relative", borderRadius: "8px", overflow: "hidden", background: "#000", aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" } }, [Icons.video(16, "#fff")])
+          : el("img", { src: m.data, style: { width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: "8px", display: "block", cursor: "pointer" } });
+        thumb.addEventListener("click", (ev) => { ev.stopPropagation(); openMediaLightbox(form.media, i); });
+        const removeBtn = el("button", {
+          onClick: (ev) => { ev.stopPropagation(); form.media = form.media.filter((x) => x.id !== m.id); rebuildBody(); },
+          style: { position: "absolute", top: "2px", right: "2px", width: "16px", height: "16px", borderRadius: "999px", background: "rgba(0,0,0,0.6)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: "2" },
+        }, [Icons.x(10, "#fff")]);
+        return el("div", { style: { position: "relative" } }, [thumb, removeBtn]);
+      }))
       : null;
     body.appendChild(field("Trade Screenshots / Videos", col([
       ghostButton("Upload photo or video", () => mediaInput.click(), { icon: Icons.image(15, C.subtext), style: { border: `1px dashed ${C.border}`, background: "none" } }),
@@ -1799,13 +1712,10 @@ function openAddTradeModal(state, actions, existingTrade) {
       mediaPreview,
       el("span", { style: { color: C.subtext, fontSize: "10.5px" } }, "Tip: keep videos short \u2014 large files use more of your device's browser storage."),
     ], { gap: 8 })));
-
     body.appendChild(field("Special Notes", textInput({ tag: "textarea", rows: 2, value: form.specialNotes, placeholder: "Anything important to flag about this trade...", oninput: (e) => (form.specialNotes = e.target.value), style: { resize: "none", borderColor: "rgba(56,189,248,0.4)" } })));
-
     body.appendChild(field("Trade Notes", textInput({ tag: "textarea", rows: 3, value: form.notes, placeholder: "What did you observe?", oninput: (e) => (form.notes = e.target.value), style: { resize: "none" } })));
   }
   rebuildBody();
-
   const footer = el("div", { style: { padding: "16px 20px", borderTop: `1px solid ${C.border}` } }, [
     primaryButton(isEdit ? t("Save Changes") : t("Save Trade"), () => {
       if (isEdit) {
@@ -1824,31 +1734,26 @@ function openAddTradeModal(state, actions, existingTrade) {
       closeModal();
     }),
   ]);
-
   sheet.appendChild(header);
   sheet.appendChild(body);
   sheet.appendChild(footer);
   overlay.appendChild(sheet);
   document.body.appendChild(overlay);
-
   function closeModal() { overlay.remove(); }
 }
-"use strict";
 
+// --- Import ---
 function renderImport(state, actions) {
-  if (state._importStage === undefined) state._importStage = "upload"; // upload -> mapping -> preview -> done
+  if (state._importStage === undefined) state._importStage = "upload";
   if (state._importRows === undefined) state._importRows = null;
   if (state._importMapping === undefined) state._importMapping = null;
   if (state._importFileName === undefined) state._importFileName = "";
   if (state._importError === undefined) state._importError = null;
-
   const container = el("div", {});
-
   function rebuild() {
     clear(container);
     container.appendChild(buildStage());
   }
-
   function resetImport() {
     state._importStage = "upload";
     state._importRows = null;
@@ -1857,23 +1762,34 @@ function renderImport(state, actions) {
     state._importError = null;
     rebuild();
   }
-
   async function handleFile(file) {
     state._importError = null;
     state._importFileName = file.name;
     const name = file.name.toLowerCase();
-
     if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
       state._importError = "Excel (.xlsx/.xls) files can't be read directly in-browser without an extra library. Please open the file in Excel or Google Sheets and use \"Save As\" / \"Export\" to CSV first, then upload the CSV here.";
       rebuild();
       return;
     }
     if (name.endsWith(".htm") || name.endsWith(".html")) {
-      state._importError = "MT4's default export is an HTML report, which this importer can't parse yet. In MT4/MT5, use \"Save as Report\" and choose CSV instead (Account History tab \u2192 right-click \u2192 Report \u2192 Save as CSV), then upload that file here.";
-      rebuild();
-      return;
+      try {
+        const text = await file.text();
+        const trades = await parseMT4HTML(text);
+        if (trades.length === 0) {
+          state._importError = "No valid trade rows found in the Positions table.";
+          rebuild();
+          return;
+        }
+        state._importTradesPreview = trades;
+        state._importStage = "preview";
+        rebuild();
+        return;
+      } catch (err) {
+        state._importError = "Couldn't parse this HTML file: " + (err.message || String(err));
+        rebuild();
+        return;
+      }
     }
-
     try {
       const text = await file.text();
       const rows = parseCSV(text);
@@ -1891,7 +1807,6 @@ function renderImport(state, actions) {
       rebuild();
     }
   }
-
   function buildUploadStage() {
     const fileInput = el("input", { type: "file", accept: ".csv,.txt,.xlsx,.xls,.htm,.html", style: { display: "none" } });
     fileInput.addEventListener("change", (e) => {
@@ -1899,37 +1814,32 @@ function renderImport(state, actions) {
       e.target.value = "";
       if (file) handleFile(file);
     });
-
     const dropZone = el("div", {
       style: { borderRadius: "12px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px", padding: "40px 16px", border: `1.5px dashed ${C.border}`, cursor: "pointer" },
       onClick: () => fileInput.click(),
     }, [
       Icons.upload(26, C.accent),
-      el("span", { style: { color: C.text, fontSize: "13px", fontWeight: "600" } }, "Tap to choose a CSV file"),
-      el("span", { style: { color: C.subtext, fontSize: "11px", textAlign: "center" } }, "Exported from your broker, MT4, or MT5 (CSV format)"),
+      el("span", { style: { color: C.text, fontSize: "13px", fontWeight: "600" } }, "Tap to choose a CSV or HTML file"),
+      el("span", { style: { color: C.subtext, fontSize: "11px", textAlign: "center" } }, "Exported from your broker, MT4, or MT5"),
       el("button", {
         style: { marginTop: "8px", padding: "8px 20px", borderRadius: "8px", fontSize: "12px", fontWeight: "700", background: C.accent, color: "#0F172A", border: "none", cursor: "pointer" },
       }, "Select File"),
     ]);
-
     const uploadCard = Card([sectionTitle("Upload Trading Statement"), dropZone, fileInput]);
-
     const errorBlock = state._importError
       ? Card([row([Icons.alert(16, C.loss), el("span", { style: { color: C.text, fontSize: "13px", lineHeight: "1.5" } }, state._importError)], { gap: 10 })], { style: { borderColor: C.loss } })
       : null;
-
     const helpCard = Card([
-      sectionTitle("How to get a CSV file"),
+      sectionTitle("How to get a file"),
       col([
         el("div", { style: { color: C.text, fontSize: "12.5px", fontWeight: "600" } }, "MT4 / MT5"),
-        el("div", { style: { color: C.subtext, fontSize: "12px", lineHeight: "1.6" } }, "Terminal \u2192 Account History tab \u2192 right-click \u2192 Report \u2192 Save as CSV (select \u201cAll History\u201d first, or you'll only get the last 3 months)."),
+        el("div", { style: { color: C.subtext, fontSize: "12px", lineHeight: "1.6" } }, "Account History tab → right-click → Report → Save as HTML or CSV."),
       ], { gap: 4, style: { marginBottom: "10px" } }),
       col([
         el("div", { style: { color: C.text, fontSize: "12.5px", fontWeight: "600" } }, "Other brokers"),
-        el("div", { style: { color: C.subtext, fontSize: "12px", lineHeight: "1.6" } }, "Look for \u201cExport\u201d or \u201cDownload\u201d on your account history / trade history page \u2014 nearly every broker offers this, usually as CSV or Excel."),
+        el("div", { style: { color: C.subtext, fontSize: "12px", lineHeight: "1.6" } }, "Look for “Export” or “Download” on your trade history page — usually as CSV or Excel."),
       ], { gap: 4 }),
     ]);
-
     const fieldsCard = Card([
       sectionTitle("Columns This Importer Recognizes"),
       el("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" } },
@@ -1939,15 +1849,12 @@ function renderImport(state, actions) {
       ),
       el("div", { style: { color: C.subtext, fontSize: "11px", marginTop: "8px", lineHeight: "1.5" } }, "On the next step you'll see exactly which column was matched to each field, and can fix any that were guessed wrong before importing."),
     ]);
-
     return col([uploadCard, errorBlock, helpCard, fieldsCard], { gap: 16, style: { paddingBottom: "16px" } });
   }
-
   function buildMappingStage() {
     const rows = state._importRows;
     const header = rows[0];
     const dataRowCount = rows.length - 1;
-
     const FIELDS = [
       { key: "date", label: "Date", required: true },
       { key: "symbol", label: "Symbol / Pair", required: true },
@@ -1961,7 +1868,6 @@ function renderImport(state, actions) {
       { key: "sl", label: "Stop Loss", required: false },
       { key: "tp", label: "Take Profit", required: false },
     ];
-
     const mappingRows = FIELDS.map((f) => {
       const options = [el("option", { value: "-1", selected: state._importMapping[f.key] === -1 }, "\u2014 Not in file \u2014")]
         .concat(header.map((h, idx) => el("option", { value: String(idx), selected: state._importMapping[f.key] === idx }, h || `Column ${idx + 1}`)));
@@ -1969,17 +1875,15 @@ function renderImport(state, actions) {
       select.addEventListener("change", (e) => { state._importMapping[f.key] = Number(e.target.value); });
       return field(f.label + (f.required ? " *" : ""), select);
     });
-
     const mappingCard = Card([
       sectionTitle("Match Columns", pill(`${dataRowCount} rows found`, C.accent, "rgba(56,189,248,0.14)")),
       el("div", { style: { color: C.subtext, fontSize: "11.5px", marginBottom: "4px" } }, `File: ${state._importFileName}`),
       col(mappingRows, { gap: 10 }),
     ], { style: { gap: "10px" } });
-
     const backBtn = ghostButton("Choose a Different File", resetImport, { bg: C.cardAlt, color: C.subtext });
     const continueBtn = primaryButton("Preview Import", () => {
       if (state._importMapping.date === -1 || state._importMapping.symbol === -1 || state._importMapping.profit === -1) {
-        state._importError = "Date, Symbol, and Profit columns are required \u2014 please select them above.";
+        state._importError = "Date, Symbol, and Profit columns are required — please select them above.";
         rebuild();
         return;
       }
@@ -1987,19 +1891,15 @@ function renderImport(state, actions) {
       state._importStage = "preview";
       rebuild();
     }, {});
-
     const errorBlock = state._importError
       ? Card([row([Icons.alert(14, C.loss), el("span", { style: { color: C.text, fontSize: "12.5px" } }, state._importError)], { gap: 8 })], { style: { borderColor: C.loss } })
       : null;
-
     return col([mappingCard, errorBlock, continueBtn, backBtn], { gap: 12, style: { paddingBottom: "16px" } });
   }
-
   function buildTradesFromMapping() {
-    const rows = state._importRows.slice(1); // skip header
+    const rows = state._importRows.slice(1);
     const m = state._importMapping;
     const get = (row, key) => (m[key] !== -1 && m[key] !== undefined ? row[m[key]] : "");
-
     return rows.map((r) => {
       const profit = parseNumber(get(r, "profit"));
       const commission = m.commission !== -1 ? parseNumber(get(r, "commission")) : 0;
@@ -2018,7 +1918,7 @@ function renderImport(state, actions) {
         risk: "\u2014",
         commission: commission ? String(commission) : "",
         result: profit > 0 ? "Win" : profit < 0 ? "Loss" : "Breakeven",
-        pnl: profit + swap, // include swap in net PnL if present
+        pnl: profit + swap,
         equity: 0,
         strategy: "Imported",
         session: suggestSession("00:00:00"),
@@ -2031,19 +1931,20 @@ function renderImport(state, actions) {
       };
     });
   }
-
   function buildPreviewStage() {
     let trades;
-    try {
-      trades = buildTradesFromMapping();
-    } catch (err) {
-      return Card([row([Icons.alert(16, C.loss), el("span", { style: { color: C.text, fontSize: "13px" } }, "Something went wrong building the preview: " + (err && err.message ? err.message : String(err)))], { gap: 10 })]);
+    if (state._importTradesPreview) {
+      trades = state._importTradesPreview;
+    } else {
+      try {
+        trades = buildTradesFromMapping();
+      } catch (err) {
+        return Card([row([Icons.alert(16, C.loss), el("span", { style: { color: C.text, fontSize: "13px" } }, "Something went wrong building the preview: " + (err && err.message ? err.message : String(err)))], { gap: 10 })]);
+      }
     }
-
     const totalPnl = trades.reduce((s, t) => s + t.pnl, 0);
     const wins = trades.filter((t) => t.result === "Win").length;
     const losses = trades.filter((t) => t.result === "Loss").length;
-
     const summaryCard = Card([
       sectionTitle("Preview"),
       el("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" } }, [
@@ -2052,7 +1953,6 @@ function renderImport(state, actions) {
         detailRow("Net P&L", fmtMoney(totalPnl)),
       ]),
     ]);
-
     const previewRows = trades.slice(0, 8).map((t) => row([
       col([
         el("span", { style: { color: C.text, fontSize: "12.5px", fontWeight: "600" } }, t.pair),
@@ -2060,22 +1960,18 @@ function renderImport(state, actions) {
       ], { gap: 2 }),
       el("span", { style: { color: pnlColor(t.pnl), fontSize: "12.5px", fontWeight: "700" } }, fmtMoney(t.pnl)),
     ], { justify: "space-between", style: { padding: "8px 0", borderTop: `1px solid ${C.border}` } }));
-
     const previewCard = Card([
       sectionTitle("Trades to Import", trades.length > 8 ? pill(`+${trades.length - 8} more`, C.subtext) : null),
       col(previewRows),
     ]);
-
     const confirmBtn = primaryButton(`Import ${trades.length} Trades`, () => {
       actions.importTrades(trades);
       state._importStage = "done";
       rebuild();
     }, {});
     const backBtn = ghostButton("Back to Column Matching", () => { state._importStage = "mapping"; rebuild(); }, { bg: C.cardAlt, color: C.subtext });
-
     return col([summaryCard, previewCard, confirmBtn, backBtn], { gap: 12, style: { paddingBottom: "16px" } });
   }
-
   function buildDoneStage() {
     return col([
       Card([
@@ -2086,93 +1982,72 @@ function renderImport(state, actions) {
       ghostButton("Go to Journal", () => actions.navigate("journal"), { bg: C.cardAlt, color: C.accent }),
     ], { gap: 12, style: { paddingBottom: "16px" } });
   }
-
   function buildStage() {
     if (state._importStage === "mapping" && state._importRows) return buildMappingStage();
-    if (state._importStage === "preview" && state._importRows) return buildPreviewStage();
+    if (state._importStage === "preview" && (state._importRows || state._importTradesPreview)) return buildPreviewStage();
     if (state._importStage === "done") return buildDoneStage();
     return buildUploadStage();
   }
-
   rebuild();
   return container;
 }
-"use strict";
 
-/* ============================================================
-   CALENDAR-BASED GROUPING HELPERS
-   Groups trades by actual calendar date, ISO week, and month
-   (not just "day of week" buckets), so "best/worst" reflects
-   real dates the person can look back at.
-   ============================================================ */
-function isoWeekKey(dateStr) {
-  const d = new Date(dateStr + "T00:00:00");
-  // ISO week calculation
-  const target = new Date(d.valueOf());
-  const dayNr = (d.getDay() + 6) % 7;
-  target.setDate(target.getDate() - dayNr + 3);
-  const firstThursday = new Date(target.getFullYear(), 0, 4);
-  const diff = target - firstThursday;
-  const week = 1 + Math.round(diff / (7 * 24 * 60 * 60 * 1000));
-  return `${target.getFullYear()}-W${String(week).padStart(2, "0")}`;
-}
-function monthKey(dateStr) {
-  return dateStr.slice(0, 7); // YYYY-MM
-}
-function formatMonthLabel(key) {
-  const [y, m] = key.split("-").map(Number);
-  return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "short", year: "numeric" });
-}
-function formatWeekLabel(key) {
-  return key.replace("-W", " \u00b7 Week ");
-}
-
-function groupTradesBy(trades, keyFn) {
-  const groups = {};
-  trades.forEach((t) => {
-    const key = keyFn(t);
-    if (!groups[key]) groups[key] = { key, trades: [], pnl: 0, wins: 0, losses: 0 };
-    groups[key].trades.push(t);
-    groups[key].pnl += t.pnl;
-    if (t.result === "Win") groups[key].wins++;
-    if (t.result === "Loss") groups[key].losses++;
-  });
-  return Object.values(groups);
-}
-
-function bestAndWorst(groups) {
-  if (!groups.length) return { best: null, worst: null };
-  const sorted = groups.slice().sort((a, b) => b.pnl - a.pnl);
-  return { best: sorted[0], worst: sorted[sorted.length - 1] };
-}
-
+// --- Analytics ---
 function renderAnalytics(state) {
   const trades = state.trades;
   const stats = computeStats(trades);
-
-  /* ---- Day-of-week performance (existing) ---- */
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri"];
   const dayPerf = days.map((d) => ({ label: d, value: Number(trades.filter((t) => t.day === d).reduce((a, t) => a + t.pnl, 0).toFixed(0)) }));
   const bestWeekday = dayPerf.reduce((a, b) => (b.value > a.value ? b : a), dayPerf[0]);
   const worstWeekday = dayPerf.reduce((a, b) => (b.value < a.value ? b : a), dayPerf[0]);
-
-  /* ---- Real calendar date / week / month groupings ---- */
+  function isoWeekKey(dateStr) {
+    const d = new Date(dateStr + "T00:00:00");
+    const target = new Date(d.valueOf());
+    const dayNr = (d.getDay() + 6) % 7;
+    target.setDate(target.getDate() - dayNr + 3);
+    const firstThursday = new Date(target.getFullYear(), 0, 4);
+    const diff = target - firstThursday;
+    const week = 1 + Math.round(diff / (7 * 24 * 60 * 60 * 1000));
+    return `${target.getFullYear()}-W${String(week).padStart(2, "0")}`;
+  }
+  function monthKey(dateStr) {
+    return dateStr.slice(0, 7);
+  }
+  function formatMonthLabel(key) {
+    const [y, m] = key.split("-").map(Number);
+    return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  }
+  function formatWeekLabel(key) {
+    return key.replace("-W", " \u00b7 Week ");
+  }
+  function groupTradesBy(trades, keyFn) {
+    const groups = {};
+    trades.forEach((t) => {
+      const key = keyFn(t);
+      if (!groups[key]) groups[key] = { key, trades: [], pnl: 0, wins: 0, losses: 0 };
+      groups[key].trades.push(t);
+      groups[key].pnl += t.pnl;
+      if (t.result === "Win") groups[key].wins++;
+      if (t.result === "Loss") groups[key].losses++;
+    });
+    return Object.values(groups);
+  }
+  function bestAndWorst(groups) {
+    if (!groups.length) return { best: null, worst: null };
+    const sorted = groups.slice().sort((a, b) => b.pnl - a.pnl);
+    return { best: sorted[0], worst: sorted[sorted.length - 1] };
+  }
   const byDate = groupTradesBy(trades, (t) => t.date);
   const byWeek = groupTradesBy(trades, (t) => isoWeekKey(t.date));
   const byMonth = groupTradesBy(trades, (t) => monthKey(t.date));
-
   const bestWorstDate = bestAndWorst(byDate);
   const bestWorstWeek = bestAndWorst(byWeek);
   const bestWorstMonth = bestAndWorst(byMonth);
-
-  /* ---- Hour-of-day performance ---- */
   const hourBuckets = {};
   trades.forEach((t) => { hourBuckets[t.hour] = (hourBuckets[t.hour] || 0) + t.pnl; });
   const hourPerf = Object.entries(hourBuckets).map(([h, v]) => ({ label: h + "h", value: Number(v.toFixed(0)) })).sort((a, b) => Number(a.label) - Number(b.label));
   const bestHour = hourPerf.length ? hourPerf.reduce((a, b) => (b.value > a.value ? b : a), hourPerf[0]) : null;
   const worstHour = hourPerf.length ? hourPerf.reduce((a, b) => (b.value < a.value ? b : a), hourPerf[0]) : null;
-
-  /* ---- Strategy comparison ---- */
   const stratGroups = {};
   trades.forEach((t) => {
     stratGroups[t.strategy] = stratGroups[t.strategy] || { wins: 0, total: 0, pnl: 0 };
@@ -2182,8 +2057,6 @@ function renderAnalytics(state) {
   });
   const stratPerf = Object.entries(stratGroups).map(([name, g]) => ({ name, winRate: Math.round((g.wins / g.total) * 100), pnl: Number(g.pnl.toFixed(0)) }));
   const bestStrat = stratPerf.reduce((a, b) => (b.winRate > a.winRate ? b : a), stratPerf[0] || { name: "\u2014", winRate: 0 });
-
-  /* ---- Mistake analytics ---- */
   const mistakeGroups = {};
   trades.forEach((t) => (t.mistakes || []).forEach((m) => {
     mistakeGroups[m] = mistakeGroups[m] || { count: 0, pnl: 0 };
@@ -2191,8 +2064,6 @@ function renderAnalytics(state) {
     mistakeGroups[m].pnl += t.pnl;
   }));
   const mistakeImpact = Object.entries(mistakeGroups).map(([name, g]) => ({ name, count: g.count, pnl: Number(g.pnl.toFixed(0)) })).sort((a, b) => b.count - a.count);
-
-  /* ---- Emotion analytics ---- */
   const emoGroups = {};
   trades.forEach((t) => {
     emoGroups[t.emotion] = emoGroups[t.emotion] || { pnl: 0, count: 0 };
@@ -2200,10 +2071,6 @@ function renderAnalytics(state) {
     emoGroups[t.emotion].count++;
   });
   const emotionPerf = Object.entries(emoGroups).map(([name, g]) => ({ label: name, value: Number((g.pnl / g.count).toFixed(0)) }));
-
-  /* ============================================================
-     RENDER
-     ============================================================ */
   const kpis = grid2([
     kpiCard(t("Net Profit"), fmtMoney(stats.net), { valueColor: pnlColor(stats.net) }),
     kpiCard(t("Win Rate"), fmtPct(stats.winRate)),
@@ -2212,7 +2079,6 @@ function renderAnalytics(state) {
     kpiCard("Total Trades", stats.total),
     kpiCard("Win/Loss Ratio", stats.winLossRatio.toFixed(2)),
   ]);
-
   function bestWorstRow(bw, formatLabel) {
     if (!bw.best) return el("span", { style: { color: C.subtext, fontSize: "12px" } }, "Not enough data yet.");
     return col([
@@ -2234,22 +2100,18 @@ function renderAnalytics(state) {
       ], { justify: "space-between", style: { padding: "8px 0", borderTop: `1px solid ${C.border}` } }),
     ]);
   }
-
   const bestWorstDayCard = Card([
     sectionTitle("Best & Worst Trading Day"),
     bestWorstRow(bestWorstDate, (key) => new Date(key + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })),
   ]);
-
   const bestWorstWeekCard = Card([
     sectionTitle("Best & Worst Trading Week"),
     bestWorstRow(bestWorstWeek, formatWeekLabel),
   ]);
-
   const bestWorstMonthCard = Card([
     sectionTitle("Best & Worst Trading Month"),
     bestWorstRow(bestWorstMonth, formatMonthLabel),
   ]);
-
   const weekdayCard = Card([
     sectionTitle("Performance by Day of Week"),
     barChart(dayPerf),
@@ -2258,7 +2120,6 @@ function renderAnalytics(state) {
       el("span", { style: { color: C.subtext, fontSize: "11px" } }, ["Worst: ", el("span", { style: { color: C.loss, fontWeight: "700" } }, worstWeekday.label)]),
     ], { justify: "space-between", style: { marginTop: "4px" } }),
   ]);
-
   const hourCard = Card([
     sectionTitle("Performance by Hour"),
     barChart(hourPerf, { height: 130 }),
@@ -2267,7 +2128,6 @@ function renderAnalytics(state) {
       el("span", { style: { color: C.subtext, fontSize: "11px" } }, ["Worst: ", el("span", { style: { color: C.loss, fontWeight: "700" } }, worstHour.label)]),
     ], { justify: "space-between", style: { marginTop: "4px" } }) : null,
   ]);
-
   const stratCard = Card([
     sectionTitle("Strategy Comparison"),
     ...stratPerf.map((s) => row([
@@ -2281,19 +2141,16 @@ function renderAnalytics(state) {
       ], { style: { alignItems: "flex-end" } }),
     ], { justify: "space-between", style: { padding: "8px 0", borderTop: `1px solid ${C.border}` } })),
   ]);
-
   const mistakeCard = Card([
     sectionTitle("Mistake Analytics"),
     mistakeImpact.length === 0
       ? el("span", { style: { color: C.subtext, fontSize: "12px" } }, "No mistakes tagged yet.")
       : col(mistakeImpact.map((m) => row([
-          row([Icons.alert(13, C.loss), el("span", { style: { color: C.text, fontSize: "13px" } }, m.name)], { gap: 8 }),
-          row([el("span", { style: { color: C.subtext, fontSize: "11px" } }, m.count + "x"), el("span", { style: { color: pnlColor(m.pnl), fontSize: "12px", fontWeight: "700" } }, fmtMoney(m.pnl))], { gap: 12 }),
-        ], { justify: "space-between", style: { padding: "8px 0", borderTop: `1px solid ${C.border}` } }))),
+        row([Icons.alert(13, C.loss), el("span", { style: { color: C.text, fontSize: "13px" } }, m.name)], { gap: 8 }),
+        row([el("span", { style: { color: C.subtext, fontSize: "11px" } }, m.count + "x"), el("span", { style: { color: pnlColor(m.pnl), fontSize: "12px", fontWeight: "700" } }, fmtMoney(m.pnl))], { gap: 12 }),
+      ], { justify: "space-between", style: { padding: "8px 0", borderTop: `1px solid ${C.border}` } }))),
   ]);
-
   const emoCard = Card([sectionTitle("Emotion vs Performance"), hBarChart(emotionPerf, { labelWidth: 70 })]);
-
   return col([
     kpis,
     bestWorstDayCard, bestWorstWeekCard, bestWorstMonthCard,
@@ -2301,26 +2158,20 @@ function renderAnalytics(state) {
     stratCard, mistakeCard, emoCard,
   ], { gap: 16, style: { paddingBottom: "16px" } });
 }
-"use strict";
 
-const NEWS_CURRENCIES = ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "NZD", "XAU"];
-const NEWS_IMPACT_LEVELS = ["High", "Medium", "Low"];
-
+// --- News with Calendar ---
 function renderNews(state, actions) {
   if (state._newsFilterImpact === undefined) state._newsFilterImpact = "All";
   if (state._newsFilterCurrency === undefined) state._newsFilterCurrency = "All";
-  if (state._newsFilterRange === undefined) state._newsFilterRange = "All"; // All, ThisWeek, ThisMonth
+  if (state._newsFilterRange === undefined) state._newsFilterRange = "All";
   if (state._newsExpanded === undefined) state._newsExpanded = null;
-
   const impactColor = { High: C.loss, Medium: C.warn, Low: C.subtext };
-
-  /* ---- Date range filter helpers ---- */
   function inRange(dateStr, range) {
     if (range === "All") return true;
     const d = new Date(dateStr + "T00:00:00");
     const now = new Date();
     if (range === "ThisWeek") {
-      const day = (now.getDay() + 6) % 7; // Monday = 0
+      const day = (now.getDay() + 6) % 7;
       const monday = new Date(now);
       monday.setDate(now.getDate() - day);
       monday.setHours(0, 0, 0, 0);
@@ -2333,18 +2184,26 @@ function renderNews(state, actions) {
     }
     return true;
   }
-
-  /* ---- Add / Edit event dialog ---- */
   function openEventDialog(existingEvent) {
     const form = existingEvent
       ? { date: existingEvent.date, currency: existingEvent.currency, event: existingEvent.event, impact: existingEvent.impact, forecast: existingEvent.forecast, previous: existingEvent.previous, actual: existingEvent.actual }
       : { date: new Date().toISOString().slice(0, 10), currency: NEWS_CURRENCIES[0], event: "", impact: "Medium", forecast: "", previous: "", actual: "" };
     let handle;
     const errorLabel = el("span", { style: { color: C.loss, fontSize: "12px", display: "none" } });
-
     const dateInput = textInput({ type: "date", value: form.date, onchange: (e) => (form.date = e.target.value) });
+    const dualDateDisplay = el("div", { style: { color: C.subtext, fontSize: "11px", marginTop: "4px" } });
+    function updateDualDate() {
+      const { greg, jalali } = formatDateDual(form.date);
+      dualDateDisplay.textContent = `Gregorian: ${greg} | Jalali: ${jalali}`;
+    }
+    updateDualDate();
+    dateInput.addEventListener("change", () => {
+      form.date = dateInput.value;
+      updateDualDate();
+    });
     const currencySelect = el("select", { style: { background: C.card, border: `1px solid ${C.border}`, borderRadius: "10px", padding: "10px 12px", color: C.text, fontSize: "13.5px", width: "100%" } },
-      NEWS_CURRENCIES.map((c) => el("option", { value: c, selected: c === form.currency }, c)));
+      NEWS_CURRENCIES.map((c) => el("option", { value: c, selected: c === form.currency }, c))
+    );
     currencySelect.addEventListener("change", (e) => (form.currency = e.target.value));
     const eventInput = textInput({ value: form.event, placeholder: "e.g. Non-Farm Payrolls", oninput: (e) => (form.event = e.target.value) });
     const impactRowWrap = el("div", { style: { display: "flex", gap: "8px" } });
@@ -2358,13 +2217,12 @@ function renderNews(state, actions) {
       });
     }
     rebuildImpactRow();
-
     const forecastInput = textInput({ value: form.forecast, placeholder: "e.g. 180K", oninput: (e) => (form.forecast = e.target.value) });
     const previousInput = textInput({ value: form.previous, placeholder: "e.g. 165K", oninput: (e) => (form.previous = e.target.value) });
     const actualInput = textInput({ value: form.actual, placeholder: "e.g. 190K (leave blank if not released yet)", oninput: (e) => (form.actual = e.target.value) });
-
     const bodyEl = col([
       field("Date", dateInput),
+      dualDateDisplay,
       field("Currency", currencySelect),
       field("Event Name", eventInput),
       field("Impact Level", impactRowWrap),
@@ -2375,7 +2233,6 @@ function renderNews(state, actions) {
       ]),
       errorLabel,
     ], { gap: 12, style: { padding: "18px 20px" } });
-
     function submit() {
       if (!form.event.trim()) { errorLabel.textContent = "Event name can't be empty."; errorLabel.style.display = "block"; return; }
       const cleaned = {
@@ -2390,15 +2247,12 @@ function renderNews(state, actions) {
       handle.close();
       actions.rerender();
     }
-
     const footer = row([
       ghostButton("Cancel", () => handle.close(), { bg: C.cardAlt, color: C.subtext }),
       primaryButton(existingEvent ? "Save" : "Add Event", submit, {}),
     ], { gap: 10, style: { padding: "16px 20px", borderTop: `1px solid ${C.border}` } });
-
     handle = openOverlay([dialogHeader(existingEvent ? "Edit News Event" : "New News Event", () => handle.close()), bodyEl, footer], { center: true, sheetStyle: { maxHeight: "88vh" } });
   }
-
   function deleteEvent(id) {
     confirmDialog({
       title: "Delete Event", message: "Delete this news event? This can't be undone.",
@@ -2406,39 +2260,30 @@ function renderNews(state, actions) {
       onConfirm: () => { state.newsEvents = state.newsEvents.filter((e) => e.id !== id); actions.rerender(); },
     });
   }
-
-  /* ---- Filters UI ---- */
   const impactChips = row([
     chip("All Impact", state._newsFilterImpact === "All", () => { state._newsFilterImpact = "All"; actions.rerender(); }),
     ...NEWS_IMPACT_LEVELS.map((lvl) => chip(lvl, state._newsFilterImpact === lvl, () => { state._newsFilterImpact = lvl; actions.rerender(); })),
   ], { gap: 8, style: { overflowX: "auto", paddingBottom: "4px" } });
-
   const currenciesInUse = [...new Set(state.newsEvents.map((e) => e.currency))];
   const currencyChips = row([
     chip("All Currencies", state._newsFilterCurrency === "All", () => { state._newsFilterCurrency = "All"; actions.rerender(); }),
     ...NEWS_CURRENCIES.filter((c) => currenciesInUse.includes(c) || true).map((c) => chip(c, state._newsFilterCurrency === c, () => { state._newsFilterCurrency = c; actions.rerender(); })),
   ], { gap: 8, style: { overflowX: "auto", paddingBottom: "4px" } });
-
   const rangeChips = row([
     chip("All Dates", state._newsFilterRange === "All", () => { state._newsFilterRange = "All"; actions.rerender(); }),
     chip("This Week", state._newsFilterRange === "ThisWeek", () => { state._newsFilterRange = "ThisWeek"; actions.rerender(); }),
     chip("This Month", state._newsFilterRange === "ThisMonth", () => { state._newsFilterRange = "ThisMonth"; actions.rerender(); }),
   ], { gap: 8, style: { overflowX: "auto", paddingBottom: "4px" } });
-
   const addBtn = ghostButton("Add News Event", () => openEventDialog(null), { icon: Icons.plus(15, C.accent) });
-
-  /* ---- Filtered + sorted list ---- */
   const filtered = state.newsEvents
     .filter((ev) => (state._newsFilterImpact === "All" || ev.impact === state._newsFilterImpact))
     .filter((ev) => (state._newsFilterCurrency === "All" || ev.currency === state._newsFilterCurrency))
     .filter((ev) => inRange(ev.date, state._newsFilterRange))
     .slice()
     .sort((a, b) => (a.date < b.date ? 1 : -1));
-
   function eventCard(ev) {
     const isOpen = state._newsExpanded === ev.id;
     const media = ev.media || [];
-
     const headerRow = row([
       row([pill(ev.currency, C.accent, "rgba(56,189,248,0.14)"), el("span", { style: { color: C.text, fontSize: "13px", fontWeight: "600" } }, ev.event)], { gap: 8 }),
       row([
@@ -2448,19 +2293,16 @@ function renderNews(state, actions) {
       ], { gap: 6 }),
     ], { justify: "space-between", style: { marginBottom: "8px", cursor: "pointer" } });
     headerRow.addEventListener("click", () => { state._newsExpanded = isOpen ? null : ev.id; actions.rerender(); });
-
     const children = [
       headerRow,
-      row([Icons.calendar(11, C.subtext), el("span", { style: { color: C.subtext, fontSize: "11px" } }, ev.date)], { gap: 6, style: { marginBottom: "10px" } }),
+      row([Icons.calendar(11, C.subtext), el("span", { style: { color: C.subtext, fontSize: "11px" } }, `${ev.date} (${formatDateDual(ev.date).jalali})`)], { gap: 6, style: { marginBottom: "10px" } }),
       el("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginBottom: "10px" } }, [
         detailRow("Forecast", ev.forecast), detailRow("Previous", ev.previous), detailRow("Actual", ev.actual),
       ]),
     ];
-
     if (isOpen) {
       const mediaSection = el("div", {});
       mediaSection.appendChild(row([Icons.image(13, C.subtext), el("span", { style: { color: C.subtext, fontSize: "11px" } }, media.length ? `${media.length} screenshot${media.length > 1 ? "s" : ""}` : "No chart screenshots attached")], { gap: 6, style: { marginBottom: "8px" } }));
-
       if (media.length) {
         const grid = el("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "6px", marginBottom: "8px" } });
         media.forEach((m, idx) => {
@@ -2474,7 +2316,6 @@ function renderNews(state, actions) {
         });
         mediaSection.appendChild(grid);
       }
-
       const mediaInput = el("input", { type: "file", accept: "image/*", multiple: true, style: { display: "none" } });
       mediaInput.addEventListener("change", async (e) => {
         const files = Array.from(e.target.files || []);
@@ -2492,26 +2333,21 @@ function renderNews(state, actions) {
       mediaSection.appendChild(mediaInput);
       children.push(mediaSection);
     }
-
     return Card(children);
   }
-
   const list = filtered.length
     ? col(filtered.map(eventCard), { gap: 10 })
     : emptyState(state.newsEvents.length ? "No events match these filters." : "No news events yet. Add your first one above.");
-
   const noteCard = Card([
-    row([Icons.globe(15, C.accent), el("span", { style: { color: C.subtext, fontSize: "12px" } }, "Events are entered manually \u2014 add the ones relevant to your trading week.")], { gap: 10 }),
+    row([Icons.globe(15, C.accent), el("span", { style: { color: C.subtext, fontSize: "12px" } }, "Events are entered manually — add the ones relevant to your trading week.")], { gap: 10 }),
   ]);
-
   return col([noteCard, addBtn, impactChips, currencyChips, rangeChips, list], { gap: 12, style: { paddingBottom: "16px" } });
 }
-"use strict";
 
+// --- Education ---
 function renderEducation(state, actions) {
   if (state._eduTab === undefined) state._eduTab = "notes";
   const fileIconFn = { pdf: Icons.file, image: Icons.image, video: Icons.video, doc: Icons.file, sheet: Icons.file, other: Icons.file };
-
   const tabs = row(["notes", "files"].map((tabId) => {
     const active = state._eduTab === tabId;
     const label = tabId === "notes" ? "Notes" : "Files";
@@ -2519,8 +2355,6 @@ function renderEducation(state, actions) {
     btn.addEventListener("click", () => { state._eduTab = tabId; actions.rerender(); });
     return btn;
   }), { gap: 8 });
-
-  /* ---- Real note editor dialog (replaces window.prompt) ---- */
   function openNoteDialog(existingNote) {
     const form = {
       title: existingNote ? existingNote.title : "",
@@ -2528,21 +2362,19 @@ function renderEducation(state, actions) {
       body: existingNote ? existingNote.body : "",
     };
     let handle;
-
     const titleInput = textInput({ value: form.title, placeholder: "e.g. Never risk more than 2%", oninput: (e) => (form.title = e.target.value) });
     const categorySelect = el("select", { style: { background: C.card, border: `1px solid ${C.border}`, borderRadius: "10px", padding: "10px 12px", color: C.text, fontSize: "13.5px", width: "100%" } },
-      EDU_CATEGORIES.map((c) => el("option", { value: c, selected: c === form.category }, c)));
+      EDU_CATEGORIES.map((c) => el("option", { value: c, selected: c === form.category }, c))
+    );
     categorySelect.addEventListener("change", (e) => (form.category = e.target.value));
     const bodyInput = textInput({ tag: "textarea", rows: 6, value: form.body, placeholder: "Write your note here...", oninput: (e) => (form.body = e.target.value), style: { resize: "none" } });
     const errorLabel = el("span", { style: { color: C.loss, fontSize: "12px", display: "none" } });
-
     const bodyEl = col([
       field("Title", titleInput),
       field("Category", categorySelect),
       field("Content", bodyInput),
       errorLabel,
     ], { gap: 12, style: { padding: "18px 20px" } });
-
     function submit() {
       if (!form.title.trim()) { errorLabel.textContent = "Title can't be empty."; errorLabel.style.display = "block"; return; }
       if (existingNote) {
@@ -2555,15 +2387,12 @@ function renderEducation(state, actions) {
       handle.close();
       actions.rerender();
     }
-
     const footer = row([
       ghostButton("Cancel", () => handle.close(), { bg: C.cardAlt, color: C.subtext }),
       primaryButton(existingNote ? "Save" : "Add Note", submit, {}),
     ], { gap: 10, style: { padding: "16px 20px", borderTop: `1px solid ${C.border}` } });
-
     handle = openOverlay([dialogHeader(existingNote ? "Edit Note" : "New Note", () => handle.close()), bodyEl, footer], { center: true, sheetStyle: { maxHeight: "85vh" } });
   }
-
   function deleteNote(id) {
     confirmDialog({
       title: "Delete Note", message: "Delete this note? This can't be undone.",
@@ -2571,8 +2400,6 @@ function renderEducation(state, actions) {
       onConfirm: () => { state.eduNotes = state.eduNotes.filter((n) => n.id !== id); actions.rerender(); },
     });
   }
-
-  /* ---- Real file upload with actual content stored + previewable ---- */
   function classifyFile(file) {
     const name = file.name.toLowerCase();
     if (file.type.startsWith("image/")) return "image";
@@ -2582,7 +2409,6 @@ function renderEducation(state, actions) {
     if (name.endsWith(".xls") || name.endsWith(".xlsx") || name.endsWith(".csv")) return "sheet";
     return "other";
   }
-
   async function handleFileUpload(fileList) {
     const files = Array.from(fileList || []);
     for (const file of files) {
@@ -2597,7 +2423,6 @@ function renderEducation(state, actions) {
     }
     actions.rerender();
   }
-
   function deleteFile(id) {
     confirmDialog({
       title: "Delete File", message: "Delete this file? This can't be undone.",
@@ -2605,14 +2430,12 @@ function renderEducation(state, actions) {
       onConfirm: () => { state.eduFiles = state.eduFiles.filter((f) => f.id !== id); actions.rerender(); },
     });
   }
-
   function openFile(f) {
     if (f.type === "image" || f.type === "video") {
       openMediaLightbox([{ id: f.id, type: f.mime, data: f.data }], 0);
       return;
     }
     if (f.type === "pdf") {
-      // PDFs can be opened directly in a new tab/window since browsers render them natively.
       const win = window.open();
       if (win) {
         win.document.write(`<iframe src="${f.data}" style="border:none;width:100%;height:100vh;"></iframe>`);
@@ -2621,10 +2444,8 @@ function renderEducation(state, actions) {
       }
       return;
     }
-    // Word/Excel/other files: browsers cannot preview these natively, so offer a download instead.
     downloadFile(f);
   }
-
   function downloadFile(f) {
     const a = document.createElement("a");
     a.href = f.data;
@@ -2633,23 +2454,22 @@ function renderEducation(state, actions) {
     a.click();
     document.body.removeChild(a);
   }
-
   let content;
   if (state._eduTab === "notes") {
     const addBtn = ghostButton("New Note", () => openNoteDialog(null), { icon: Icons.plus(15, C.accent) });
     const notes = state.eduNotes.length === 0
       ? emptyState("No notes yet.")
       : col(state.eduNotes.map((n) => Card([
+        row([
+          pill(n.category, C.accent, "rgba(56,189,248,0.14)"),
           row([
-            pill(n.category, C.accent, "rgba(56,189,248,0.14)"),
-            row([
-              el("button", { onClick: () => openNoteDialog(n), style: { background: "none", border: "none", cursor: "pointer", display: "flex" } }, [Icons.file(14, C.subtext)]),
-              el("button", { onClick: () => deleteNote(n.id), style: { background: "none", border: "none", cursor: "pointer", display: "flex" } }, [Icons.trash(14, C.loss)]),
-            ], { gap: 4 }),
-          ], { justify: "space-between" }),
-          el("div", { style: { color: C.text, fontSize: "14px", fontWeight: "600", marginTop: "8px" } }, n.title),
-          el("div", { style: { color: C.subtext, fontSize: "12.5px", marginTop: "4px", whiteSpace: "pre-wrap" } }, n.body),
-        ])), { gap: 10 });
+            el("button", { onClick: () => openNoteDialog(n), style: { background: "none", border: "none", cursor: "pointer", display: "flex" } }, [Icons.file(14, C.subtext)]),
+            el("button", { onClick: () => deleteNote(n.id), style: { background: "none", border: "none", cursor: "pointer", display: "flex" } }, [Icons.trash(14, C.loss)]),
+          ], { gap: 4 }),
+        ], { justify: "space-between" }),
+        el("div", { style: { color: C.text, fontSize: "14px", fontWeight: "600", marginTop: "8px" } }, n.title),
+        el("div", { style: { color: C.subtext, fontSize: "12.5px", marginTop: "4px", whiteSpace: "pre-wrap" } }, n.body),
+      ])), { gap: 10 });
     content = col([addBtn, notes], { gap: 10 });
   } else {
     const fileInput = el("input", { type: "file", multiple: true, accept: ".pdf,.doc,.docx,.xls,.xlsx,.csv,image/*,video/*", style: { display: "none" } });
@@ -2661,29 +2481,27 @@ function renderEducation(state, actions) {
     const files = state.eduFiles.length === 0
       ? emptyState("No files yet. Upload PDFs, Word/Excel docs, images, or videos.")
       : col(state.eduFiles.map((f) => Card([
-          row([
-            el("div", {
-              style: { width: "38px", height: "38px", borderRadius: "10px", flexShrink: "0", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(56,189,248,0.12)", cursor: "pointer", overflow: "hidden" },
-              onClick: () => openFile(f),
-            }, f.type === "image" ? [el("img", { src: f.data, style: { width: "100%", height: "100%", objectFit: "cover" } })] : [fileIconFn[f.type](17, C.accent)]),
-            col([
-              el("span", { style: { color: C.text, fontSize: "13px", fontWeight: "600", cursor: "pointer" }, onClick: () => openFile(f) }, f.name),
-              el("span", { style: { color: C.subtext, fontSize: "11px" } }, `${f.size}${f.type === "doc" || f.type === "sheet" ? " \u00b7 tap to download" : " \u00b7 tap to view"}`),
-            ], { gap: 2, style: { flex: "1" } }),
-            el("button", { onClick: () => deleteFile(f.id), style: { background: "none", border: "none", cursor: "pointer", display: "flex" } }, [Icons.trash(14, C.loss)]),
-          ], { gap: 12 }),
-        ], { style: { flexDirection: "row", alignItems: "center" } })), { gap: 10 });
+        row([
+          el("div", {
+            style: { width: "38px", height: "38px", borderRadius: "10px", flexShrink: "0", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(56,189,248,0.12)", cursor: "pointer", overflow: "hidden" },
+            onClick: () => openFile(f),
+          }, f.type === "image" ? [el("img", { src: f.data, style: { width: "100%", height: "100%", objectFit: "cover" } })] : [fileIconFn[f.type](17, C.accent)]),
+          col([
+            el("span", { style: { color: C.text, fontSize: "13px", fontWeight: "600", cursor: "pointer" }, onClick: () => openFile(f) }, f.name),
+            el("span", { style: { color: C.subtext, fontSize: "11px" } }, `${f.size}${f.type === "doc" || f.type === "sheet" ? " \u00b7 tap to download" : " \u00b7 tap to view"}`),
+          ], { gap: 2, style: { flex: "1" } }),
+          el("button", { onClick: () => deleteFile(f.id), style: { background: "none", border: "none", cursor: "pointer", display: "flex" } }, [Icons.trash(14, C.loss)]),
+        ], { gap: 12 }),
+      ], { style: { flexDirection: "row", alignItems: "center" } })), { gap: 10 });
     content = col([addBtn, fileInput, files], { gap: 10 });
   }
-
   return col([tabs, content], { gap: 12, style: { paddingBottom: "16px" } });
 }
-"use strict";
 
+// --- Settings ---
 function renderSettings(state, actions) {
   if (state._newSymbolInput === undefined) state._newSymbolInput = "";
   if (state._importStatusMsg === undefined) state._importStatusMsg = null;
-
   const langCard = Card([
     sectionTitle(t("Language")),
     row(["English", "Persian"].map((l) => {
@@ -2694,7 +2512,6 @@ function renderSettings(state, actions) {
       return btn;
     }), { gap: 8 }),
   ]);
-
   const themeCard = Card([
     sectionTitle(t("Theme")),
     row(["Dark", "Light"].map((themeName) => {
@@ -2706,14 +2523,12 @@ function renderSettings(state, actions) {
       return btn;
     }), { gap: 8 }),
   ]);
-
   const lockCard = Card([
     row([
       row([Icons.lock(16, C.accent), col([el("span", { style: { color: C.text, fontSize: "13px", fontWeight: "600" } }, t("App Lock")), el("span", { style: { color: C.subtext, fontSize: "11px" } }, t("PIN or biometric authentication"))], { gap: 2 })], { gap: 10 }),
       toggleSwitch(state.settings.pin, () => { state.settings.pin = !state.settings.pin; actions.rerender(); }),
     ], { justify: "space-between" }),
   ]);
-
   const fileInput = el("input", { type: "file", accept: ".json,application/json", style: { display: "none" } });
   fileInput.addEventListener("change", async (e) => {
     const file = e.target.files && e.target.files[0];
@@ -2736,7 +2551,6 @@ function renderSettings(state, actions) {
     actions.rerender();
     setTimeout(() => { state._importStatusMsg = null; actions.rerender(); }, 5000);
   });
-
   const dataCard = Card([
     sectionTitle(t("Data Management")),
     row([Icons.checklist(12, C.profit), el("span", { style: { color: C.subtext, fontSize: "11.5px" } }, t("All data is saved automatically on this device."))], { gap: 6, style: { marginBottom: "4px" } }),
@@ -2746,12 +2560,10 @@ function renderSettings(state, actions) {
     state._importStatusMsg ? row([state._importStatusMsg.ok ? Icons.check(13, C.profit) : Icons.alert(13, C.loss), el("span", { style: { color: state._importStatusMsg.ok ? C.profit : C.loss, fontSize: "12px" } }, state._importStatusMsg.message)], { gap: 6 }) : null,
     el("div", { style: { color: C.subtext, fontSize: "11px", lineHeight: "1.5" } }, "Export creates a single file with all your trades, strategies, notes and settings. Move that file to another device (e.g. via email, USB, or cloud storage) and use Import there to bring everything over."),
   ], { style: { gap: "10px" } });
-
   const symbolChips = row(state.symbols.map((s) => row([
     el("span", { style: { color: C.text, fontSize: "12px", fontWeight: "600" } }, s),
     el("button", { onClick: () => { state.symbols = state.symbols.filter((x) => x !== s); actions.rerender(); }, style: { background: "none", border: "none", cursor: "pointer", display: "flex" } }, [Icons.x(12, C.subtext)]),
   ], { gap: 6, style: { padding: "6px 10px", borderRadius: "8px", background: C.cardAlt } })), { gap: 8, style: { flexWrap: "wrap" } });
-
   const symbolInputRow = row([
     textInput({ value: state._newSymbolInput, placeholder: "e.g. USDCAD", oninput: (e) => (state._newSymbolInput = e.target.value), style: { flex: "1" } }),
     el("button", {
@@ -2764,9 +2576,7 @@ function renderSettings(state, actions) {
       style: { padding: "0 16px", borderRadius: "10px", background: C.accent, color: "#0F172A", border: "none", cursor: "pointer", display: "flex", alignItems: "center" },
     }, [Icons.plus(16, "#0F172A")]),
   ], { gap: 8 });
-
   const symbolsCard = Card([sectionTitle(t("Trading Symbols")), symbolChips, symbolInputRow], { style: { gap: "12px" } });
-
   function openAccountDialog(existing) {
     const form = { name: existing ? existing.name : "", number: existing ? existing.number : "", broker: existing ? existing.broker : "" };
     let handle;
@@ -2774,14 +2584,12 @@ function renderSettings(state, actions) {
     const numberInput = textInput({ value: form.number, placeholder: "e.g. 1024578", oninput: (e) => (form.number = e.target.value) });
     const brokerInput = textInput({ value: form.broker, placeholder: "e.g. IC Markets", oninput: (e) => (form.broker = e.target.value) });
     const errorLabel = el("span", { style: { color: C.loss, fontSize: "12px", display: "none" } });
-
     const bodyEl = col([
       field("Account Name", nameInput),
       field("Account Number", numberInput),
       field("Broker (optional)", brokerInput),
       errorLabel,
     ], { gap: 12, style: { padding: "18px 20px" } });
-
     function submit() {
       if (!form.name.trim()) { errorLabel.textContent = "Account name is required."; errorLabel.style.display = "block"; return; }
       if (existing) {
@@ -2792,15 +2600,12 @@ function renderSettings(state, actions) {
       handle.close();
       actions.rerender();
     }
-
     const footer = row([
       ghostButton("Cancel", () => handle.close(), { bg: C.cardAlt, color: C.subtext }),
       primaryButton(existing ? "Save" : "Add Account", submit, {}),
     ], { gap: 10, style: { padding: "16px 20px", borderTop: `1px solid ${C.border}` } });
-
     handle = openOverlay([dialogHeader(existing ? "Edit Account" : "New Trading Account", () => handle.close()), bodyEl, footer], { center: true });
   }
-
   function deleteAccount(acc) {
     confirmDialog({
       title: "Delete Account",
@@ -2809,32 +2614,29 @@ function renderSettings(state, actions) {
       onConfirm: () => { state.accounts = state.accounts.filter((a) => a.id !== acc.id); actions.rerender(); },
     });
   }
-
   const accountRows = state.accounts.length
     ? col(state.accounts.map((acc) => Card([
+      row([
+        col([
+          el("span", { style: { color: C.text, fontSize: "13px", fontWeight: "600" } }, acc.name),
+          el("span", { style: { color: C.subtext, fontSize: "11px" } }, [acc.number ? "# " + acc.number : "No account number", acc.broker ? " \u00b7 " + acc.broker : ""].join("")),
+        ], { gap: 2 }),
         row([
-          col([
-            el("span", { style: { color: C.text, fontSize: "13px", fontWeight: "600" } }, acc.name),
-            el("span", { style: { color: C.subtext, fontSize: "11px" } }, [acc.number ? "# " + acc.number : "No account number", acc.broker ? " \u00b7 " + acc.broker : ""].join("")),
-          ], { gap: 2 }),
-          row([
-            el("button", { onClick: () => openAccountDialog(acc), style: { background: "none", border: "none", cursor: "pointer", display: "flex", padding: "4px" } }, [Icons.file(14, C.subtext)]),
-            el("button", { onClick: () => deleteAccount(acc), style: { background: "none", border: "none", cursor: "pointer", display: "flex", padding: "4px" } }, [Icons.trash(14, C.loss)]),
-          ], { gap: 4 }),
-        ], { justify: "space-between" }),
-      ], { style: { padding: "12px 14px" } })), { gap: 8 })
+          el("button", { onClick: () => openAccountDialog(acc), style: { background: "none", border: "none", cursor: "pointer", display: "flex", padding: "4px" } }, [Icons.file(14, C.subtext)]),
+          el("button", { onClick: () => deleteAccount(acc), style: { background: "none", border: "none", cursor: "pointer", display: "flex", padding: "4px" } }, [Icons.trash(14, C.loss)]),
+        ], { gap: 4 }),
+      ], { justify: "space-between" }),
+    ], { style: { padding: "12px 14px" } })), { gap: 8 })
     : emptyState(t("No trading accounts yet."));
-
   const accountsCard = Card([
     sectionTitle(t("Trading Accounts")),
     accountRows,
     ghostButton(t("Add Trading Account"), () => openAccountDialog(null), { icon: Icons.plus(14, C.accent), style: { marginTop: "10px" } }),
   ], { style: { gap: "10px" } });
-
   return col([langCard, themeCard, lockCard, dataCard, accountsCard, symbolsCard], { gap: 12, style: { paddingBottom: "16px" } });
 }
-"use strict";
 
+// --- Navigation & App Shell ---
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: Icons.dashboard },
   { id: "checklist", label: "Checklist", icon: Icons.checklist },
@@ -2845,7 +2647,6 @@ const NAV_ITEMS = [
   { id: "education", label: "Education", icon: Icons.education },
   { id: "settings", label: "Settings", icon: Icons.settings },
 ];
-
 function createApp(rootEl) {
   const state = {
     page: "dashboard",
@@ -2860,7 +2661,6 @@ function createApp(rootEl) {
     accounts: DEFAULT_ACCOUNTS.slice(),
   };
   let saveTimer = null;
-
   function scheduleSave() {
     if (!state.loaded) return;
     if (saveTimer) clearTimeout(saveTimer);
@@ -2872,12 +2672,10 @@ function createApp(rootEl) {
       });
     }, 400);
   }
-
   function recalcEquity() {
     let eq = 10000;
     state.trades.forEach((t) => { eq += t.pnl; t.equity = eq; });
   }
-
   const actions = {
     rerender: () => { render(); scheduleSave(); },
     navigate: (page) => { state.page = page; render(); },
@@ -2905,7 +2703,6 @@ function createApp(rootEl) {
       scheduleSave();
     },
   };
-
   function buildHeader() {
     const title = (NAV_ITEMS.find((n) => n.id === state.page) || {}).label || "";
     return row([
@@ -2919,7 +2716,6 @@ function createApp(rootEl) {
       ], { gap: 8, style: { padding: "6px 10px", borderRadius: "999px", background: C.card, border: `1px solid ${C.border}` } }),
     ], { justify: "space-between", style: { padding: "16px", borderBottom: `1px solid ${C.border}`, position: "sticky", top: "0", background: C.bg, zIndex: "30" } });
   }
-
   function buildNav() {
     const bar = row(NAV_ITEMS.map((item) => {
       const active = state.page === item.id;
@@ -2931,7 +2727,23 @@ function createApp(rootEl) {
     }), { gap: 0, style: { overflowX: "auto", padding: "8px 4px" } });
     return el("div", { style: { position: "fixed", bottom: "0", left: "0", right: "0", zIndex: "40", maxWidth: "480px", margin: "0 auto", background: "rgba(15,23,42,0.97)", borderTop: `1px solid ${C.border}`, backdropFilter: "blur(8px)" } }, [bar]);
   }
-
+  function buildDesktopSidebar() {
+    const sidebar = el("div", { class: "desktop-sidebar", style: { display: "none" } }, [
+      el("div", { style: { padding: "20px", textAlign: "center" } }, [
+        el("div", { style: { color: C.text, fontSize: "18px", fontWeight: "700", marginBottom: "4px" } }, t("FX Discipline")),
+        el("div", { style: { color: C.subtext, fontSize: "11px" } }, t("Saved on device")),
+      ]),
+      col(NAV_ITEMS.map((item) => {
+        const active = state.page === item.id;
+        const btn = el("button", {
+          style: { display: "flex", alignItems: "center", gap: "12px", width: "100%", padding: "12px 16px", background: active ? "rgba(56,189,248,0.15)" : "transparent", border: "none", cursor: "pointer", borderRadius: "10px", color: active ? C.accent : C.text, fontSize: "14px", fontWeight: "600" },
+        }, [item.icon(18, active ? C.accent : C.subtext), t(item.label)]);
+        btn.addEventListener("click", () => actions.navigate(item.id));
+        return btn;
+      }), { gap: 4, style: { padding: "0 16px" } }),
+    ]);
+    return sidebar;
+  }
   function buildPage() {
     switch (state.page) {
       case "dashboard": return renderDashboard(state);
@@ -2945,10 +2757,8 @@ function createApp(rootEl) {
       default: return el("div", {}, "Unknown page");
     }
   }
-
   function render() {
     clear(rootEl);
-
     if (!state.loaded) {
       rootEl.appendChild(el("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", gap: "12px" } }, [
         el("div", { style: { width: "32px", height: "32px", borderRadius: "50%", border: `3px solid ${C.border}`, borderTopColor: C.accent, animation: "spin 0.8s linear infinite" } }),
@@ -2956,15 +2766,26 @@ function createApp(rootEl) {
       ]));
       return;
     }
-
-    const shell = el("div", { style: { maxWidth: "480px", margin: "0 auto", minHeight: "100vh", position: "relative", paddingBottom: "78px" } }, [
+    const shell = el("div", { style: { minHeight: "100vh", display: "flex", flexDirection: "column" } }, [
       buildHeader(),
-      el("div", { style: { padding: "16px" } }, [buildPage()]),
-      buildNav(),
+      el("div", { style: { flex: "1", display: "flex" } }, [
+        buildDesktopSidebar(),
+        el("div", { class: "main-content", style: { flex: "1", padding: "16px" } }, [buildPage()]),
+      ]),
+      el("div", { class: "mobile-nav" }, [buildNav()]),
     ]);
     rootEl.appendChild(shell);
+    // Hide desktop sidebar on mobile, show on desktop
+    const sidebar = document.querySelector(".desktop-sidebar");
+    const mobileNav = document.querySelector(".mobile-nav");
+    if (window.innerWidth >= 768) {
+      if (sidebar) sidebar.style.display = "block";
+      if (mobileNav) mobileNav.style.display = "none";
+    } else {
+      if (sidebar) sidebar.style.display = "none";
+      if (mobileNav) mobileNav.style.display = "block";
+    }
   }
-
   async function init() {
     const saved = await loadAppState();
     if (saved) {
@@ -2983,13 +2804,10 @@ function createApp(rootEl) {
     state.loaded = true;
     render();
   }
-
-  render(); // show loading spinner immediately
+  render();
   init();
-
   return { state, render };
 }
-
 try {
   window.__bootOk = true;
   createApp(document.getElementById("root"));
